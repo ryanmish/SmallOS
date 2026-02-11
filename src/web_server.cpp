@@ -442,6 +442,10 @@ void webServerInit() {
     // Catch-all
     server.onNotFound(handleNotFound);
 
+    // Collect Content-Length header so OTA upload handler can read actual file size
+    const char* headersToCollect[] = { "Content-Length" };
+    server.collectHeaders(headersToCollect, 1);
+
     server.begin();
     logPrintf("Web: server started");
 }

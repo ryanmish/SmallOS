@@ -11,6 +11,14 @@
 // Weather data struct is defined in weather.h
 struct WeatherData;
 
+// --- Display pages ---
+
+enum DisplayPage {
+    PAGE_CLOCK_WEATHER = 0,
+    PAGE_SYSTEM_INFO,
+    PAGE_COUNT
+};
+
 // --- LovyanGFX hardware configuration ---
 
 class LGFX : public lgfx::LGFX_Device {
@@ -60,8 +68,22 @@ public:
 
 void    displayInit();
 
-// Rendering
-void    displayRenderClock(const char* timeStr, const char* dateStr, const WeatherData* weather);
+// Page management
+void        displaySetPage(DisplayPage page);
+DisplayPage displayGetPage();
+
+// Centralized update - call from main loop, routes to correct renderer.
+// Handles page-transition screen clears internally.
+void    displayUpdate(const char* timeStr, const char* dateStr,
+                      const WeatherData* weather, bool apMode,
+                      const char* apSSID, const char* apIP,
+                      // System info parameters
+                      const char* fwVersion, bool wifiConnected,
+                      bool wifiAP, const char* ssid, const char* ip,
+                      int rssi, const char* mac, uint32_t freeHeapKB,
+                      unsigned long uptimeSec, bool otaConfirmed);
+
+// Standalone renderers (used outside the normal update loop)
 void    displayRenderAPMode(const char* ssid, const char* ip);
 void    displayRenderMessage(const char* msg);
 void    displayRenderOTAProgress(int percent);

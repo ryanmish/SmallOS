@@ -16,6 +16,7 @@ static const char* KEY_PENDING       = "pending";
 
 static bool          firmwareConfirmed = false;
 static unsigned long bootTimeMs        = 0;
+static size_t        uploadTotalSize   = 0;
 
 // --- NVS helpers ---
 
@@ -171,6 +172,9 @@ void otaHandleUpload(WebServer& server) {
         case UPLOAD_FILE_START: {
             logPrintf("[OTA] Web upload start: %s", upload.filename.c_str());
 
+            // Capture actual file size from Content-Length header for accurate progress
+            uploadTotalSize = server.header("Content-Length").toInt();
+
             // Estimate available space (use half of total flash as safe upper bound)
             size_t maxSize = (ESP.getFreeSketchSpace() > 0)
                              ? ESP.getFreeSketchSpace()
@@ -196,10 +200,10 @@ void otaHandleUpload(WebServer& server) {
                 logPrintf("[OTA] Update.write() failed: %s", Update.errorString());
             }
 
-            // Progress reporting
+            // Progress reporting (use actual file size, not partition size)
             size_t written = upload.totalSize + upload.currentSize;
-            int pct = (Update.size() > 0)
-                      ? (int)((written * 100) / Update.size())
+            int pct = (uploadTotalSize > 0)
+                      ? (int)((written * 100) / uploadTotalSize)
                       : 0;
             displayRenderOTAProgress(pct);
             break;

@@ -782,7 +782,7 @@ function load() {
         badge.textContent = 'Unconfirmed';
         badge.className = 'ota-badge pending';
         pendingWrap.style.display = 'block';
-        startOtaTimer(120 - (d.uptime || 0));
+        startOtaTimer(300 - (d.uptime || 0));
       }
     }
     if (d.mac) document.getElementById('s-mac').textContent = d.mac;
@@ -970,7 +970,7 @@ function otaTick() {
   var min = Math.floor(otaRemaining / 60);
   var sec = otaRemaining % 60;
   document.getElementById('ota-timer-text').textContent = 'Auto-rollback in ' + min + ':' + (sec < 10 ? '0' : '') + sec;
-  document.getElementById('ota-timer-fill').style.width = ((120 - otaRemaining) / 120 * 100) + '%';
+  document.getElementById('ota-timer-fill').style.width = ((300 - otaRemaining) / 300 * 100) + '%';
   if (otaRemaining <= 0) {
     stopOtaTimer();
     var tt = document.getElementById('ota-timer-text');

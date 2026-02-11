@@ -11,7 +11,7 @@
 // ============================================================
 
 // --- Color palette (RGB565) ---
-static const uint16_t COL_BG        = 0x0013;   // ~#1a1a2e dark navy
+static const uint16_t COL_BG        = 0x0000;   // Pure black
 static const uint16_t COL_WHITE     = 0xFFFF;
 static const uint16_t COL_CYAN      = 0x07FF;
 static const uint16_t COL_GREEN     = 0x07E0;
@@ -19,7 +19,7 @@ static const uint16_t COL_RED       = 0xF800;
 static const uint16_t COL_GREY      = 0x7BEF;
 static const uint16_t COL_DARK_GREY = 0x3186;
 
-// --- Layout constants ---
+// --- Layout constants (clock page) ---
 static const int TIME_Y       = 55;     // Large clock vertical position
 static const int DATE_Y       = 110;    // Date line below clock
 static const int DIVIDER_Y    = 140;    // Horizontal divider
@@ -31,8 +31,8 @@ static const int WIFI_DOT_R   = 5;
 static const int IP_Y         = 4;      // IP address line
 static const int CENTER_X     = DISPLAY_WIDTH / 2;
 
-// --- Differential rendering state ---
-struct PreviousDisplayState {
+// --- Differential rendering state (clock page) ---
+struct PreviousClockState {
     char time[6];           // "HH:MM\0"
     char date[32];
     char weatherDesc[24];
@@ -44,18 +44,42 @@ struct PreviousDisplayState {
     bool initialized;       // False until first full draw
 };
 
+// --- Differential rendering state (system info page) ---
+struct PreviousSysInfoState {
+    char fwVersion[16];
+    char wifiStatus[40];
+    char ip[20];
+    char rssi[16];
+    char heap[16];
+    char uptime[24];
+    char ota[16];
+    char mac[20];
+    bool initialized;
+};
+
+// --- Page tracking ---
+static DisplayPage currentPage = PAGE_CLOCK_WEATHER;
+static DisplayPage lastRenderedPage = (DisplayPage)-1;  // Force initial clear
+
 static LGFX lcd;
-static PreviousDisplayState prev;
+static PreviousClockState prevClock;
+static PreviousSysInfoState prevSysInfo;
 
 // --- Internal helpers ---
 
 static bool apRendered = false;
+static bool otaScreenInitialized = false;
 
-static void clearPrevState() {
-    memset(&prev, 0, sizeof(prev));
-    prev.initialized = false;
-    prev.temperature = -999.0f;
+static void clearAllPrevState() {
+    memset(&prevClock, 0, sizeof(prevClock));
+    prevClock.initialized = false;
+    prevClock.temperature = -999.0f;
+
+    memset(&prevSysInfo, 0, sizeof(prevSysInfo));
+    prevSysInfo.initialized = false;
+
     apRendered = false;
+    otaScreenInitialized = false;
 }
 
 // Draw centered text with background fill to avoid flicker.
@@ -93,7 +117,7 @@ void displayInit() {
     lcd.setBrightness(0);  // Start dark, brightness set after boot
     lcd.fillScreen(COL_BG);
 
-    clearPrevState();
+    clearAllPrevState();
 
     logPrintf("Display initialized (%dx%d ST7789V)", DISPLAY_WIDTH, DISPLAY_HEIGHT);
 
@@ -114,61 +138,66 @@ LGFX* displayGetLCD() {
     return &lcd;
 }
 
+void displaySetPage(DisplayPage page) {
+    currentPage = page;
+}
+
+DisplayPage displayGetPage() {
+    return currentPage;
+}
+
 // --- Clock screen (differential) ---
 
-void displayRenderClock(const char* timeStr, const char* dateStr, const WeatherData* weather) {
-    lcd.startWrite();
-
-    // Full redraw on first call
-    if (!prev.initialized) {
-        lcd.fillScreen(COL_BG);
-        prev.initialized = true;
+static void renderClock(const char* timeStr, const char* dateStr, const WeatherData* weather) {
+    // Full redraw on first call after page entry
+    if (!prevClock.initialized) {
+        prevClock.initialized = true;
 
         // Draw static divider line
         lcd.drawFastHLine(40, DIVIDER_Y, DISPLAY_WIDTH - 80, COL_DARK_GREY);
     }
 
     // --- Time (large) ---
-    if (strcmp(timeStr, prev.time) != 0) {
+    if (strcmp(timeStr, prevClock.time) != 0) {
         drawCenteredText(CENTER_X, TIME_Y, timeStr,
                          &fonts::Font7, 1.0f, COL_WHITE, COL_BG);
-        strncpy(prev.time, timeStr, sizeof(prev.time) - 1);
-        prev.time[sizeof(prev.time) - 1] = '\0';
+        strncpy(prevClock.time, timeStr, sizeof(prevClock.time) - 1);
+        prevClock.time[sizeof(prevClock.time) - 1] = '\0';
     }
 
     // --- Date ---
-    if (strcmp(dateStr, prev.date) != 0) {
+    if (strcmp(dateStr, prevClock.date) != 0) {
         drawCenteredText(CENTER_X, DATE_Y, dateStr,
                          &fonts::Font2, 1.0f, COL_GREY, COL_BG);
-        strncpy(prev.date, dateStr, sizeof(prev.date) - 1);
-        prev.date[sizeof(prev.date) - 1] = '\0';
+        strncpy(prevClock.date, dateStr, sizeof(prevClock.date) - 1);
+        prevClock.date[sizeof(prevClock.date) - 1] = '\0';
     }
 
     // --- Weather (bottom half) ---
     if (weather && weather->valid) {
         // Weather description (derived from icon enum)
         const char* desc = weatherIconName(weather->icon);
-        if (strcmp(desc, prev.weatherDesc) != 0) {
+        if (strcmp(desc, prevClock.weatherDesc) != 0) {
             drawCenteredText(CENTER_X, WEATHER_Y, desc,
                              &fonts::Font2, 1.0f, COL_WHITE, COL_BG);
-            strncpy(prev.weatherDesc, desc, sizeof(prev.weatherDesc) - 1);
-            prev.weatherDesc[sizeof(prev.weatherDesc) - 1] = '\0';
+            strncpy(prevClock.weatherDesc, desc, sizeof(prevClock.weatherDesc) - 1);
+            prevClock.weatherDesc[sizeof(prevClock.weatherDesc) - 1] = '\0';
         }
 
         // Temperature (use epsilon to avoid float equality issues)
-        if (fabsf(weather->temperature - prev.temperature) > 0.05f) {
+        if (fabsf(weather->temperature - prevClock.temperature) > 0.05f) {
             char tempBuf[16];
             snprintf(tempBuf, sizeof(tempBuf), "%.0f%s",
                      weather->temperature,
                      TEMP_UNIT_FAHRENHEIT ? "F" : "C");
             drawCenteredText(CENTER_X, TEMP_Y, tempBuf,
                              &fonts::Font4, 1.0f, COL_CYAN, COL_BG);
-            prev.temperature = weather->temperature;
+            prevClock.temperature = weather->temperature;
         }
 
-        prev.weatherValid = true;
+        prevClock.weatherValid = true;
 
-    } else if (prev.weatherValid || !prev.initialized) {
+    } else if (prevClock.weatherValid) {
         // Weather became invalid or first draw with no weather
         drawCenteredText(CENTER_X, WEATHER_Y, "No weather data",
                          &fonts::Font2, 1.0f, COL_DARK_GREY, COL_BG);
@@ -176,23 +205,23 @@ void displayRenderClock(const char* timeStr, const char* dateStr, const WeatherD
         // Clear temperature area (Font4 is ~26px tall, use 30px to be safe)
         lcd.fillRect(0, TEMP_Y - 15, DISPLAY_WIDTH, 30, COL_BG);
 
-        prev.weatherValid = false;
-        prev.temperature = -999.0f;
-        memset(prev.weatherDesc, 0, sizeof(prev.weatherDesc));
+        prevClock.weatherValid = false;
+        prevClock.temperature = -999.0f;
+        memset(prevClock.weatherDesc, 0, sizeof(prevClock.weatherDesc));
     }
 
     // --- WiFi status dot (top-right) ---
     bool wifiUp = (WiFi.status() == WL_CONNECTED);
-    if (wifiUp != prev.wifiConnected) {
+    if (wifiUp != prevClock.wifiConnected) {
         uint16_t dotColor = wifiUp ? COL_GREEN : COL_RED;
         lcd.fillCircle(WIFI_DOT_X, WIFI_DOT_Y, WIFI_DOT_R, dotColor);
-        prev.wifiConnected = wifiUp;
+        prevClock.wifiConnected = wifiUp;
     }
 
     // --- IP address (top, small, only when connected) ---
     if (wifiUp) {
         String ipStr = WiFi.localIP().toString();
-        if (strcmp(ipStr.c_str(), prev.ip) != 0) {
+        if (strcmp(ipStr.c_str(), prevClock.ip) != 0) {
             // Clear previous IP area
             lcd.fillRect(0, 0, WIFI_DOT_X - WIFI_DOT_R - 4, 14, COL_BG);
             lcd.setFont(&fonts::Font0);
@@ -200,25 +229,167 @@ void displayRenderClock(const char* timeStr, const char* dateStr, const WeatherD
             lcd.setTextColor(COL_DARK_GREY, COL_BG);
             lcd.setTextDatum(lgfx::top_left);
             lcd.drawString(ipStr.c_str(), 4, IP_Y);
-            strncpy(prev.ip, ipStr.c_str(), sizeof(prev.ip) - 1);
-            prev.ip[sizeof(prev.ip) - 1] = '\0';
+            strncpy(prevClock.ip, ipStr.c_str(), sizeof(prevClock.ip) - 1);
+            prevClock.ip[sizeof(prevClock.ip) - 1] = '\0';
         }
-    } else if (prev.ip[0] != '\0') {
+    } else if (prevClock.ip[0] != '\0') {
         // WiFi dropped, clear IP
         lcd.fillRect(0, 0, WIFI_DOT_X - WIFI_DOT_R - 4, 14, COL_BG);
-        prev.ip[0] = '\0';
+        prevClock.ip[0] = '\0';
+    }
+}
+
+// --- System info screen (differential) ---
+
+static void renderSystemInfo(const char* fwVersion, bool wifiConnected, bool wifiAP,
+                             const char* ssid, const char* ip, int rssi,
+                             const char* mac, uint32_t freeHeapKB,
+                             unsigned long uptimeSec, bool otaConfirmed) {
+    const int lineHeight = 18;
+    const int startX = 10;
+    int y = 10;
+
+    // Helper: draw a line only if its text changed. Uses two-arg setTextColor
+    // to overwrite old text with background color (no fillScreen needed).
+    auto drawInfoLine = [&](int lineY, const char* newText, char* prevBuf, size_t prevBufSize) {
+        if (strcmp(newText, prevBuf) != 0) {
+            // Set font state for this draw
+            lcd.setFont(&fonts::Font2);
+            lcd.setTextSize(1);
+            lcd.setTextDatum(lgfx::top_left);
+
+            // Erase old text by drawing it in background color
+            if (prevBuf[0] != '\0') {
+                lcd.setTextColor(COL_BG, COL_BG);
+                lcd.drawString(prevBuf, startX, lineY);
+            }
+
+            // Draw new text
+            lcd.setTextColor(COL_WHITE, COL_BG);
+            lcd.drawString(newText, startX, lineY);
+
+            strncpy(prevBuf, newText, prevBufSize - 1);
+            prevBuf[prevBufSize - 1] = '\0';
+        }
+    };
+
+    // Build current strings
+    char fwBuf[sizeof(prevSysInfo.fwVersion)];
+    snprintf(fwBuf, sizeof(fwBuf), "FW: %s", fwVersion);
+    drawInfoLine(y, fwBuf, prevSysInfo.fwVersion, sizeof(prevSysInfo.fwVersion));
+    y += lineHeight;
+
+    char wifiBuf[sizeof(prevSysInfo.wifiStatus)];
+    if (wifiConnected) {
+        snprintf(wifiBuf, sizeof(wifiBuf), "WiFi: %s", ssid);
+    } else if (wifiAP) {
+        snprintf(wifiBuf, sizeof(wifiBuf), "WiFi: AP Mode");
+    } else {
+        snprintf(wifiBuf, sizeof(wifiBuf), "WiFi: Disconnected");
+    }
+    drawInfoLine(y, wifiBuf, prevSysInfo.wifiStatus, sizeof(prevSysInfo.wifiStatus));
+    y += lineHeight;
+
+    char ipBuf[sizeof(prevSysInfo.ip)];
+    snprintf(ipBuf, sizeof(ipBuf), "IP: %s", ip);
+    drawInfoLine(y, ipBuf, prevSysInfo.ip, sizeof(prevSysInfo.ip));
+    y += lineHeight;
+
+    char rssiBuf[sizeof(prevSysInfo.rssi)];
+    snprintf(rssiBuf, sizeof(rssiBuf), "RSSI: %d dBm", rssi);
+    drawInfoLine(y, rssiBuf, prevSysInfo.rssi, sizeof(prevSysInfo.rssi));
+    y += lineHeight;
+
+    char heapBuf[sizeof(prevSysInfo.heap)];
+    snprintf(heapBuf, sizeof(heapBuf), "Heap: %u KB", freeHeapKB);
+    drawInfoLine(y, heapBuf, prevSysInfo.heap, sizeof(prevSysInfo.heap));
+    y += lineHeight;
+
+    unsigned long hours   = uptimeSec / 3600;
+    unsigned long minutes = (uptimeSec % 3600) / 60;
+    unsigned long secs    = uptimeSec % 60;
+    char uptimeBuf[sizeof(prevSysInfo.uptime)];
+    snprintf(uptimeBuf, sizeof(uptimeBuf), "Up: %luh %lum %lus", hours, minutes, secs);
+    drawInfoLine(y, uptimeBuf, prevSysInfo.uptime, sizeof(prevSysInfo.uptime));
+    y += lineHeight;
+
+    char otaBuf[sizeof(prevSysInfo.ota)];
+    snprintf(otaBuf, sizeof(otaBuf), "OTA: %s", otaConfirmed ? "Confirmed" : "Pending");
+    drawInfoLine(y, otaBuf, prevSysInfo.ota, sizeof(prevSysInfo.ota));
+    y += lineHeight;
+
+    char macBuf[sizeof(prevSysInfo.mac)];
+    snprintf(macBuf, sizeof(macBuf), "MAC: %s", mac);
+    drawInfoLine(y, macBuf, prevSysInfo.mac, sizeof(prevSysInfo.mac));
+
+    prevSysInfo.initialized = true;
+}
+
+// ============================================================
+// Centralized display update
+// ============================================================
+// All normal display rendering passes through here. This function
+// detects page/mode changes and calls fillScreen ONLY on transitions,
+// then routes to the appropriate page renderer.
+
+void displayUpdate(const char* timeStr, const char* dateStr,
+                   const WeatherData* weather, bool apMode,
+                   const char* apSSID, const char* apIP,
+                   const char* fwVersion, bool wifiConnected,
+                   bool wifiAP, const char* ssid, const char* ip,
+                   int rssi, const char* mac, uint32_t freeHeapKB,
+                   unsigned long uptimeSec, bool otaConfirmed) {
+
+    // AP mode overrides everything. Treat it as a special "page" for
+    // transition detection. The existing render-once logic (apRendered)
+    // is still respected inside displayRenderAPMode.
+    if (apMode) {
+        // Detect transition INTO AP mode
+        if (lastRenderedPage != (DisplayPage)-2) {
+            // -2 is our sentinel for "AP mode active"
+            clearAllPrevState();
+            // apRendered was cleared by clearAllPrevState, so
+            // displayRenderAPMode will do its full draw including fillScreen
+            lastRenderedPage = (DisplayPage)-2;
+        }
+        displayRenderAPMode(apSSID, apIP);
+        return;
+    }
+
+    lcd.startWrite();
+
+    // Detect page change (including return from AP mode)
+    if (currentPage != lastRenderedPage) {
+        lcd.fillScreen(COL_BG);
+        clearAllPrevState();
+        lastRenderedPage = currentPage;
+        logPrintf("Display: page transition -> %d (screen cleared)", (int)currentPage);
+    }
+
+    switch (currentPage) {
+        case PAGE_CLOCK_WEATHER:
+            if (timeStr && dateStr) {
+                renderClock(timeStr, dateStr, weather);
+            }
+            break;
+
+        case PAGE_SYSTEM_INFO:
+            renderSystemInfo(fwVersion, wifiConnected, wifiAP, ssid, ip,
+                             rssi, mac, freeHeapKB, uptimeSec, otaConfirmed);
+            break;
+
+        default:
+            break;
     }
 
     lcd.endWrite();
 }
 
-// --- AP Mode screen ---
+// --- AP Mode screen (standalone, render-once) ---
 
 void displayRenderAPMode(const char* ssid, const char* ip) {
     if (apRendered) return;
     apRendered = true;
-
-    clearPrevState();
 
     lcd.startWrite();
     lcd.fillScreen(COL_BG);
@@ -265,7 +436,9 @@ void displayRenderAPMode(const char* ssid, const char* ip) {
 // --- Full-screen message ---
 
 void displayRenderMessage(const char* msg) {
-    clearPrevState();
+    clearAllPrevState();
+    // Force re-clear on next displayUpdate call
+    lastRenderedPage = (DisplayPage)-1;
 
     lcd.startWrite();
     lcd.fillScreen(COL_BG);
@@ -285,9 +458,10 @@ void displayRenderOTAProgress(int percent) {
     lcd.startWrite();
 
     // Only redraw full background on first call (percent == 0)
-    static bool otaScreenInitialized = false;
     if (!otaScreenInitialized || percent == 0) {
-        clearPrevState();
+        clearAllPrevState();
+        // Force re-clear on next displayUpdate call
+        lastRenderedPage = (DisplayPage)-1;
         lcd.fillScreen(COL_BG);
 
         drawCenteredText(CENTER_X, 60, "Updating...",

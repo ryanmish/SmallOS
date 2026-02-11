@@ -27,7 +27,7 @@
 #define TOUCH_DEBOUNCE_MS       50
 #define TOUCH_LONG_PRESS_MS     2000
 #define TOUCH_DOUBLE_TAP_MS     300
-#define TOUCH_THRESHOLD_PCT     70      // Touch detected when reading drops below N% of baseline
+#define TOUCH_THRESHOLD_PCT     85      // Touch detected when reading drops below N% of baseline
 
 // --- WiFi ---
 #define WIFI_AP_SSID_PREFIX     "SmallTV-"
@@ -55,7 +55,7 @@
 #define TEMP_UNIT_FAHRENHEIT    true    // Default to Fahrenheit
 
 // --- OTA ---
-#define OTA_CONFIRM_TIMEOUT_MS  120000  // 2 minutes to call /confirm-good
+#define OTA_CONFIRM_TIMEOUT_MS  300000  // 5 minutes to call /confirm-good
 #define OTA_PASSWORD            "smalltv"
 
 // --- Settings (NVS) ---

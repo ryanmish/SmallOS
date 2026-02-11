@@ -15,18 +15,6 @@
 #include "web_server.h"
 
 // ============================================================
-// Display Pages
-// ============================================================
-
-enum DisplayPage {
-    PAGE_CLOCK_WEATHER = 0,
-    PAGE_SYSTEM_INFO,
-    PAGE_COUNT
-};
-
-static DisplayPage currentPage = PAGE_CLOCK_WEATHER;
-
-// ============================================================
 // Time Formatting
 // ============================================================
 
@@ -44,65 +32,6 @@ static bool getFormattedTime(char* timeBuf, size_t timeBufLen,
     strftime(dateBuf, dateBufLen, "%a %b %d", &timeinfo);
 
     return true;
-}
-
-// ============================================================
-// System Info Page Rendering
-// ============================================================
-
-static void renderSystemInfo() {
-    LGFX* lcd = displayGetLCD();
-    if (!lcd) return;
-
-    lcd->fillScreen(TFT_BLACK);
-    lcd->setTextColor(TFT_WHITE, TFT_BLACK);
-    lcd->setTextSize(1);
-
-    int y = 10;
-    int lineHeight = 18;
-
-    lcd->setCursor(10, y);
-    lcd->printf("FW: %s", FW_VERSION);
-    y += lineHeight;
-
-    lcd->setCursor(10, y);
-    if (wifiIsConnected()) {
-        lcd->printf("WiFi: %s", wifiGetSSID().c_str());
-    } else if (wifiIsAPMode()) {
-        lcd->printf("WiFi: AP Mode");
-    } else {
-        lcd->printf("WiFi: Disconnected");
-    }
-    y += lineHeight;
-
-    lcd->setCursor(10, y);
-    lcd->printf("IP: %s", wifiGetIP().c_str());
-    y += lineHeight;
-
-    lcd->setCursor(10, y);
-    lcd->printf("RSSI: %d dBm", wifiGetRSSI());
-    y += lineHeight;
-
-    lcd->setCursor(10, y);
-    lcd->printf("Heap: %u KB", ESP.getFreeHeap() / 1024);
-    y += lineHeight;
-
-    // Uptime
-    unsigned long uptimeSec = millis() / 1000;
-    unsigned long hours   = uptimeSec / 3600;
-    unsigned long minutes = (uptimeSec % 3600) / 60;
-    unsigned long secs    = uptimeSec % 60;
-
-    lcd->setCursor(10, y);
-    lcd->printf("Up: %luh %lum %lus", hours, minutes, secs);
-    y += lineHeight;
-
-    lcd->setCursor(10, y);
-    lcd->printf("OTA: %s", otaIsConfirmed() ? "Confirmed" : "Pending");
-    y += lineHeight;
-
-    lcd->setCursor(10, y);
-    lcd->printf("MAC: %s", wifiGetMAC().c_str());
 }
 
 // ============================================================
@@ -261,8 +190,9 @@ void loop() {
             screenDimmed = false;
             screenOffByUser = false;
         } else {
-            currentPage = (DisplayPage)((currentPage + 1) % PAGE_COUNT);
-            logPrintf("Page changed to %d", (int)currentPage);
+            DisplayPage next = (DisplayPage)((displayGetPage() + 1) % PAGE_COUNT);
+            displaySetPage(next);
+            logPrintf("Page changed to %d", (int)next);
             lastDisplayUpdate = 0;  // Force immediate redraw
         }
     }
@@ -289,34 +219,41 @@ void loop() {
     if ((now - lastDisplayUpdate) >= DISPLAY_UPDATE_MS) {
         lastDisplayUpdate = now;
 
-        if (wifiIsAPMode()) {
-            // Show AP setup screen with SSID and IP
-            displayRenderAPMode(wifiGetSSID().c_str(), wifiGetIP().c_str());
+        // Gather time data (may fail if NTP hasn't synced yet)
+        char timeBuf[8] = {0};
+        char dateBuf[16] = {0};
+        bool timeValid = getFormattedTime(timeBuf, sizeof(timeBuf),
+                                          dateBuf, sizeof(dateBuf));
+
+        // If time isn't available yet and we're on the clock page,
+        // show a waiting message instead
+        if (!timeValid && displayGetPage() == PAGE_CLOCK_WEATHER && !wifiIsAPMode()) {
+            displayRenderMessage("Waiting for NTP...");
         } else {
-            switch (currentPage) {
-                case PAGE_CLOCK_WEATHER: {
-                    char timeBuf[8];
-                    char dateBuf[16];
+            // Gather all data needed by the display module
+            const WeatherData& weather = weatherGet();
+            String ssidStr = wifiGetSSID();
+            String ipStr   = wifiGetIP();
+            String macStr  = wifiGetMAC();
 
-                    if (getFormattedTime(timeBuf, sizeof(timeBuf),
-                                         dateBuf, sizeof(dateBuf))) {
-                        const WeatherData& weather = weatherGet();
-                        displayRenderClock(timeBuf, dateBuf,
-                                           weather.valid ? &weather : nullptr);
-                    } else {
-                        displayRenderMessage("Waiting for NTP...");
-                    }
-                    break;
-                }
-
-                case PAGE_SYSTEM_INFO: {
-                    renderSystemInfo();
-                    break;
-                }
-
-                default:
-                    break;
-            }
+            displayUpdate(
+                timeValid ? timeBuf : nullptr,
+                timeValid ? dateBuf : nullptr,
+                weather.valid ? &weather : nullptr,
+                wifiIsAPMode(),
+                ssidStr.c_str(),
+                ipStr.c_str(),
+                FW_VERSION,
+                wifiIsConnected(),
+                wifiIsAPMode(),
+                ssidStr.c_str(),
+                ipStr.c_str(),
+                wifiGetRSSI(),
+                macStr.c_str(),
+                ESP.getFreeHeap() / 1024,
+                millis() / 1000,
+                otaIsConfirmed()
+            );
         }
     }
 
