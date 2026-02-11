@@ -5,6 +5,7 @@
 #include "display.h"
 #include "weather.h"
 #include "ota.h"
+#include "touch.h"
 
 #include <WebServer.h>
 #include <ArduinoJson.h>
@@ -147,6 +148,10 @@ static void handleStatus() {
     doc["lat"]        = s.latitude;
     doc["lon"]        = s.longitude;
     doc["ota_confirmed"] = otaIsConfirmed();
+    doc["touch_raw"]      = touchGetRaw();
+    doc["touch_baseline"] = touchGetBaseline();
+    doc["touch_touching"] = touchIsTouched();
+    doc["touch_threshold_pct"] = s.touchThresholdPct;
 
     String json;
     serializeJson(doc, json);
@@ -177,6 +182,14 @@ static void handleSet() {
     if (server.hasArg("tempF")) {
         s.tempFahrenheit = (server.arg("tempF") == "1");
         logPrintf("Web: temp unit set to %s", s.tempFahrenheit ? "F" : "C");
+        changed = true;
+    }
+
+    if (server.hasArg("touchPct")) {
+        int pct = server.arg("touchPct").toInt();
+        pct = constrain(pct, 50, 99);
+        s.touchThresholdPct = (uint8_t)pct;
+        logPrintf("Web: touch threshold set to %d%%", s.touchThresholdPct);
         changed = true;
     }
 

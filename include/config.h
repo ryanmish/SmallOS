@@ -60,7 +60,7 @@
 
 // --- Settings (NVS) ---
 #define NVS_NAMESPACE           "smalltv"
-#define SETTINGS_VERSION        1       // Increment when settings struct changes
+#define SETTINGS_VERSION        2       // Increment when settings struct changes
 
 // --- Logger ---
 #define LOG_BUFFER_SIZE         30      // Number of log lines

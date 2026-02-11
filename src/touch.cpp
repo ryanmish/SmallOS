@@ -1,6 +1,7 @@
 #include "touch.h"
 #include "config.h"
 #include "logger.h"
+#include "settings.h"
 
 // ============================================================
 // Touch Implementation
@@ -48,7 +49,8 @@ static uint16_t readTouchAvg() {
 
 // Recalculate threshold from current baseline.
 static void recalcThreshold() {
-    _threshold = (_baseline * TOUCH_THRESHOLD_PCT) / 100;
+    uint8_t pct = settingsGet().touchThresholdPct;
+    _threshold = (_baseline * pct) / 100;
 }
 
 // Perform full calibration: average many samples to establish baseline.

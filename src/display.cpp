@@ -49,10 +49,13 @@ static PreviousDisplayState prev;
 
 // --- Internal helpers ---
 
+static bool apRendered = false;
+
 static void clearPrevState() {
     memset(&prev, 0, sizeof(prev));
     prev.initialized = false;
     prev.temperature = -999.0f;
+    apRendered = false;
 }
 
 // Draw centered text with background fill to avoid flicker.
@@ -212,6 +215,9 @@ void displayRenderClock(const char* timeStr, const char* dateStr, const WeatherD
 // --- AP Mode screen ---
 
 void displayRenderAPMode(const char* ssid, const char* ip) {
+    if (apRendered) return;
+    apRendered = true;
+
     clearPrevState();
 
     lcd.startWrite();

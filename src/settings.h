@@ -17,6 +17,7 @@ struct Settings {
     float   longitude;
     char    hostname[32];     // mDNS hostname
     long    gmtOffsetSec;     // Timezone offset in seconds
+    uint8_t touchThresholdPct; // Touch sensitivity (0-100, lower = more sensitive)
 };
 
 // --- Settings lifecycle ---

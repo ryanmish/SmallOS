@@ -10,6 +10,7 @@ static const char* KEY_LATITUDE      = "lat";
 static const char* KEY_LONGITUDE     = "lon";
 static const char* KEY_HOSTNAME      = "hostname";
 static const char* KEY_GMT_OFFSET    = "gmtOff";
+static const char* KEY_TOUCH_THRESH  = "touchPct";
 static const char* KEY_BOOT_FAILS    = "bootFails";
 static const char* KEY_POWER_CYCLES  = "pwrCycles";
 
@@ -28,6 +29,7 @@ static void applyDefaults() {
     currentSettings.gmtOffsetSec   = -18000;  // US Eastern (UTC-5)
     strncpy(currentSettings.hostname, "smalltv", sizeof(currentSettings.hostname) - 1);
     currentSettings.hostname[sizeof(currentSettings.hostname) - 1] = '\0';
+    currentSettings.touchThresholdPct = TOUCH_THRESHOLD_PCT;
 }
 
 static void loadFromNVS() {
@@ -41,6 +43,7 @@ static void loadFromNVS() {
     String storedHostname = prefs.getString(KEY_HOSTNAME, "smalltv");
     strncpy(currentSettings.hostname, storedHostname.c_str(), sizeof(currentSettings.hostname) - 1);
     currentSettings.hostname[sizeof(currentSettings.hostname) - 1] = '\0';
+    currentSettings.touchThresholdPct = prefs.getUChar(KEY_TOUCH_THRESH, TOUCH_THRESHOLD_PCT);
 }
 
 static void writeToNVS() {
@@ -51,6 +54,7 @@ static void writeToNVS() {
     prefs.putFloat(KEY_LONGITUDE, currentSettings.longitude);
     prefs.putLong(KEY_GMT_OFFSET, currentSettings.gmtOffsetSec);
     prefs.putString(KEY_HOSTNAME, currentSettings.hostname);
+    prefs.putUChar(KEY_TOUCH_THRESH, currentSettings.touchThresholdPct);
 }
 
 // --- Public API: Settings ---
