@@ -16,5 +16,7 @@
 void otaInit();                             // Set up ArduinoOTA + rollback watchdog
 void otaUpdate();                           // Call in main loop
 void otaConfirmGood();                      // Cancel rollback timer, mark firmware valid
+void otaRollback();                         // Roll back to previous firmware and reboot
 bool otaIsConfirmed();                      // Has firmware been confirmed good?
+bool otaIsPending();                        // Is firmware pending verification? (checks NVS, safe to call before otaInit)
 void otaHandleUpload(WebServer& server);    // HTTP upload handler for /ota endpoint

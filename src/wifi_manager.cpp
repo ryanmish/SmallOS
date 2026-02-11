@@ -145,7 +145,7 @@ static void startAPMode() {
 
     WiFi.disconnect(true);
     WiFi.mode(WIFI_AP);
-    WiFi.softAP(apSSID.c_str(), WIFI_AP_PASSWORD);
+    WiFi.softAP(apSSID.c_str());
 
     // Small delay for AP to stabilize
     delay(100);

@@ -7,81 +7,88 @@
 *{box-sizing:border-box;margin:0;padding:0}
 
 :root{
-  --bg:#faf7f4;
-  --surface:#ffffff;
-  --surface2:#f2eeea;
-  --border:rgba(0,0,0,.07);
-  --text:#3a322c;
-  --text2:#8a7f74;
-  --text3:#b8ad9f;
-  --accent:#e07a5f;
-  --accent-dim:rgba(224,122,95,.1);
-  --danger:#d44;
-  --danger-dim:rgba(221,68,68,.08);
-  --radius:14px;
-  --radius-sm:10px;
+  --bg:#f2f1ed;
+  --surface:#faf9f7;
+  --surface2:#efede8;
+  --border:rgba(90,80,65,.1);
+  --text:#3a3428;
+  --text2:#78705f;
+  --text3:#a59d8e;
+  --accent:#7e9462;
+  --accent-hover:#6e8354;
+  --accent-dim:rgba(126,148,98,.1);
+  --accent-dim2:rgba(126,148,98,.18);
+  --danger:#bf5f55;
+  --danger-dim:rgba(191,95,85,.08);
+  --radius:16px;
+  --radius-sm:11px;
+  --shadow:0 1px 3px rgba(100,90,70,.06), 0 4px 12px rgba(100,90,70,.04);
+  --shadow-hover:0 2px 8px rgba(100,90,70,.1), 0 6px 20px rgba(100,90,70,.06);
 }
 
 body{
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
   background:var(--bg);
   color:var(--text);
-  max-width:480px;
+  max-width:460px;
   margin:0 auto;
-  font-size:15px;
+  padding:0 0 32px;
+  font-size:16px;
   line-height:1.5;
   min-height:100vh;
-  display:flex;
-  flex-direction:column;
   -webkit-font-smoothing:antialiased;
 }
 
-/* ---- Header ---- */
-.header{
-  padding:20px 20px 0;
+/* ---- Top bar (header + tabs) ---- */
+.top-bar{
   display:flex;
   align-items:center;
-  gap:10px;
-}
-.header h1{
-  font-size:1.15em;
-  font-weight:700;
-  color:var(--text);
-  letter-spacing:.3px;
-}
-.header .dot{
-  width:7px;height:7px;
-  border-radius:50%;
-  background:#ccc4ba;
-  flex-shrink:0;
-}
-.header .dot.online{background:#4ade80}
-
-/* ---- Tabs ---- */
-.tab-bar{
-  display:flex;
-  padding:16px 20px 0;
-  gap:4px;
+  padding:20px 20px 0;
   position:sticky;
   top:0;
   background:var(--bg);
   z-index:50;
+  border-bottom:1px solid var(--border);
 }
-.tab-bar::after{
-  content:'';
-  position:absolute;
-  bottom:0;left:0;right:0;
-  height:1px;
-  background:var(--border);
+.top-left{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-right:auto;
+}
+.top-left h1{
+  font-size:1.2em;
+  font-weight:800;
+  color:var(--text);
+  letter-spacing:-.2px;
+}
+.top-left .dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--text3);
+  flex-shrink:0;
+  transition:background .3s;
+}
+.top-left .dot.online{
+  background:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-dim);
+  animation:pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 3px var(--accent-dim)}
+  50%{box-shadow:0 0 0 6px var(--accent-dim)}
+}
+.tab-bar{
+  display:flex;
+  gap:2px;
 }
 .tab-btn{
-  flex:1;
-  padding:10px 0 12px;
+  padding:12px 14px 14px;
   background:none;
   border:none;
   color:var(--text3);
-  font-size:.82em;
-  font-weight:600;
+  font-size:.85em;
+  font-weight:700;
   letter-spacing:.3px;
   cursor:pointer;
   position:relative;
@@ -93,7 +100,7 @@ body{
 .tab-btn.active::after{
   content:'';
   position:absolute;
-  bottom:0;left:20%;right:20%;
+  bottom:0;left:10%;right:10%;
   height:2px;
   background:var(--accent);
   border-radius:2px 2px 0 0;
@@ -102,23 +109,30 @@ body{
 /* ---- Content ---- */
 .tab-content{
   display:none;
-  padding:20px;
+  padding:24px 20px 0;
   flex:1;
-  animation:fadeIn .2s ease;
+  animation:fadeIn .25s ease;
 }
 .tab-content.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-/* ---- Section ---- */
-.section{margin-bottom:28px}
+/* ---- Section (cards) ---- */
+.section{
+  background:var(--surface);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:14px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+}
 .section:last-child{margin-bottom:0}
 .section-title{
-  font-size:.7em;
+  font-size:.75em;
   color:var(--text3);
   text-transform:uppercase;
-  letter-spacing:1.8px;
-  font-weight:600;
-  margin-bottom:14px;
+  letter-spacing:1.6px;
+  font-weight:700;
+  margin-bottom:16px;
 }
 
 /* ---- Status rows ---- */
@@ -126,12 +140,12 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:11px 0;
+  padding:10px 0;
   border-bottom:1px solid var(--border);
 }
 .status-row:last-child{border-bottom:none}
-.status-label{color:var(--text2);font-size:.9em}
-.status-value{color:var(--text);font-size:.9em;font-weight:500}
+.status-label{color:var(--text2);font-size:.95em}
+.status-value{color:var(--text);font-size:.95em;font-weight:600}
 .badge{
   display:inline-block;
   background:var(--accent-dim);
@@ -145,15 +159,16 @@ body{
 /* ---- Inputs ---- */
 label{
   display:block;
-  font-size:.82em;
+  font-size:.88em;
   color:var(--text2);
   margin-bottom:6px;
-  font-weight:500;
+  font-weight:600;
+  letter-spacing:.2px;
 }
 input[type=text],input[type=password],input[type=number],select{
   width:100%;
-  padding:12px 14px;
-  background:var(--surface2);
+  padding:11px 14px;
+  background:#f5f4f1;
   border:1px solid var(--border);
   border-radius:var(--radius-sm);
   color:var(--text);
@@ -166,9 +181,10 @@ input[type=text],input[type=password],input[type=number],select{
   -webkit-appearance:none;
 }
 select{
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a7f74' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23847a6d' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat:no-repeat;
   background-position:right 14px center;
+  background-color:var(--surface2);
   padding-right:36px;
   cursor:pointer;
 }
@@ -176,6 +192,7 @@ input:focus,select:focus{
   border-color:var(--accent);
   box-shadow:0 0 0 3px var(--accent-dim);
 }
+input::placeholder{color:var(--text3)}
 
 /* ---- Range slider ---- */
 input[type=range]{
@@ -186,22 +203,27 @@ input[type=range]{
   outline:none;
 }
 input[type=range]::-webkit-slider-runnable-track{
-  height:4px;
+  height:6px;
   background:var(--surface2);
-  border-radius:2px;
+  border-radius:3px;
+  border:1px solid var(--border);
 }
 input[type=range]::-webkit-slider-thumb{
   -webkit-appearance:none;
-  width:20px;height:20px;
+  width:22px;height:22px;
   border-radius:50%;
   background:var(--accent);
-  margin-top:-8px;
+  margin-top:-9px;
   cursor:pointer;
-  box-shadow:0 1px 6px rgba(0,0,0,.35);
-  transition:transform .15s;
+  box-shadow:0 1px 4px rgba(0,0,0,.15);
+  transition:transform .15s,box-shadow .15s;
+  border:2px solid #fff;
 }
-input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
-input[type=range]:active::-webkit-slider-thumb{transform:scale(1.1)}
+input[type=range]::-webkit-slider-thumb:hover{
+  transform:scale(1.12);
+  box-shadow:0 2px 8px rgba(126,148,98,.3);
+}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.05)}
 .range-row{
   display:flex;
   align-items:center;
@@ -210,7 +232,7 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.1)}
 .range-row input[type=range]{flex:1}
 .range-val{
   font-size:.85em;
-  font-weight:600;
+  font-weight:700;
   color:var(--text);
   min-width:38px;
   text-align:right;
@@ -230,12 +252,27 @@ button{
   min-height:44px;
 }
 button:active{transform:scale(.97)}
-.btn{background:var(--accent);color:#fff}
-.btn:hover{background:#d06a4f}
-.btn-sec{background:var(--surface);color:var(--text2);border:1px solid var(--border)}
-.btn-sec:hover{background:var(--surface2);color:var(--text)}
-.btn-warn{background:var(--danger-dim);color:var(--danger);border:1px solid rgba(224,85,85,.2)}
-.btn-warn:hover{background:rgba(224,85,85,.18)}
+.btn{
+  background:var(--accent);
+  color:#fff;
+  box-shadow:0 2px 6px rgba(126,148,98,.2);
+}
+.btn:hover{
+  background:var(--accent-hover);
+  box-shadow:0 3px 10px rgba(126,148,98,.28);
+}
+.btn-sec{
+  background:var(--surface2);
+  color:var(--text2);
+  border:1px solid var(--border);
+}
+.btn-sec:hover{background:#dfdcd6;color:var(--text)}
+.btn-warn{
+  background:var(--danger-dim);
+  color:var(--danger);
+  border:1px solid rgba(191,95,85,.15);
+}
+.btn-warn:hover{background:rgba(191,95,85,.14)}
 .btn-block{width:100%;margin-top:4px}
 
 /* ---- Toggle (F/C) ---- */
@@ -244,14 +281,15 @@ button:active{transform:scale(.97)}
   flex:1;
   padding:9px;
   border:1px solid var(--border);
-  background:transparent;
+  background:var(--surface2);
   color:var(--text3);
   min-height:40px;
   transition:all .2s;
   font-weight:500;
+  box-shadow:none;
 }
 .toggle button:first-child{border-radius:var(--radius-sm) 0 0 var(--radius-sm)}
-.toggle button:last-child{border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+.toggle button:last-child{border-radius:0 var(--radius-sm) var(--radius-sm) 0;border-left:none}
 .toggle button:hover{color:var(--text2);transform:none}
 .toggle button:active{transform:none}
 .toggle button.active{
@@ -259,6 +297,7 @@ button:active{transform:scale(.97)}
   color:#fff;
   border-color:var(--accent);
   font-weight:700;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.1);
 }
 
 /* ---- Switch toggle ---- */
@@ -266,7 +305,7 @@ button:active{transform:scale(.97)}
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:12px 0;
+  padding:8px 0;
 }
 .switch-row .switch-label{
   font-size:.92em;
@@ -275,8 +314,8 @@ button:active{transform:scale(.97)}
 }
 .switch{
   position:relative;
-  width:44px;
-  height:26px;
+  width:46px;
+  height:28px;
   flex-shrink:0;
 }
 .switch input{opacity:0;width:0;height:0}
@@ -285,7 +324,7 @@ button:active{transform:scale(.97)}
   inset:0;
   background:var(--surface2);
   border:1px solid var(--border);
-  border-radius:13px;
+  border-radius:14px;
   cursor:pointer;
   transition:background .2s,border-color .2s;
 }
@@ -293,22 +332,24 @@ button:active{transform:scale(.97)}
   content:'';
   position:absolute;
   top:3px;left:3px;
-  width:18px;height:18px;
-  background:#ccc4ba;
+  width:20px;height:20px;
+  background:#fff;
   border-radius:50%;
-  transition:transform .2s,background .2s;
+  transition:transform .2s,box-shadow .2s;
+  box-shadow:0 1px 3px rgba(0,0,0,.12);
 }
 .switch input:checked+.switch-track{
-  background:var(--accent-dim);
+  background:var(--accent);
   border-color:var(--accent);
 }
 .switch input:checked+.switch-track::after{
   transform:translateX(18px);
-  background:var(--accent);
+  background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.15);
 }
 
 /* ---- WiFi networks ---- */
-.net-list{margin:12px 0}
+.net-list{margin:10px 0}
 .net{
   padding:12px 14px;
   margin:0 0 6px;
@@ -321,26 +362,31 @@ button:active{transform:scale(.97)}
   transition:all .15s ease;
   border:2px solid transparent;
 }
-.net:hover{background:#ede8e3}
+.net:hover{
+  background:#e2dfda;
+  transform:translateY(-1px);
+  box-shadow:0 2px 6px rgba(100,90,70,.08);
+}
 .net.selected{
   border-color:var(--accent);
   background:var(--accent-dim);
 }
-.net-name{font-size:.9em;font-weight:500}
-.net-name .lock{margin-left:5px;font-size:.8em;opacity:.5}
-.rssi{color:var(--text3);font-size:.8em;font-family:monospace;white-space:nowrap}
+.net-name{font-size:.95em;font-weight:500}
+.net-name .lock{margin-left:5px;opacity:.4;vertical-align:-1px;display:inline-block}
+.rssi{color:var(--text3);font-size:.85em;font-family:monospace;white-space:nowrap}
 .bars{letter-spacing:1px;margin-right:4px;font-size:.9em}
 
 .selected-net{
   padding:14px;
-  background:var(--accent-dim);
+  background:var(--accent-dim2);
+  border:1px solid var(--accent-dim2);
   border-radius:var(--radius-sm);
   margin-bottom:12px;
   display:flex;
   align-items:center;
   gap:8px;
 }
-.selected-net-label{font-size:.78em;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.selected-net-label{font-size:.72em;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.8px}
 .selected-net-name{font-size:.95em;font-weight:600;color:var(--text)}
 .manual-link{
   font-size:.8em;
@@ -349,7 +395,8 @@ button:active{transform:scale(.97)}
   text-decoration:none;
   display:inline-block;
   margin-bottom:10px;
-  opacity:.7;
+  font-weight:500;
+  opacity:.8;
   transition:opacity .15s;
 }
 .manual-link:hover{opacity:1}
@@ -366,24 +413,85 @@ button:active{transform:scale(.97)}
 /* ---- Toast ---- */
 #msg{
   position:fixed;
-  top:16px;
+  bottom:20px;
   left:50%;
   transform:translateX(-50%);
   width:calc(100% - 40px);
-  max-width:440px;
+  max-width:420px;
   padding:12px 16px;
   border-radius:var(--radius-sm);
   display:none;
   font-size:.88em;
   font-weight:500;
   z-index:200;
-  box-shadow:0 4px 20px rgba(0,0,0,.1);
+  box-shadow:0 4px 16px rgba(0,0,0,.08);
+  animation:slideUp .25s ease;
 }
-.ok{background:#f0faf3;color:#2d8a4e;border-left:3px solid #4ade80}
-.err{background:#fef2f2;color:#c33;border-left:3px solid #f87171}
+@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.ok{background:#f2f8ee;color:#4a7a3a;border:1px solid rgba(126,148,98,.2)}
+.err{background:#fdf2f1;color:var(--danger);border:1px solid rgba(191,95,85,.15)}
+
+/* ---- OTA status ---- */
+.ota-badge{
+  font-size:.58em;
+  font-weight:700;
+  padding:2px 8px;
+  border-radius:20px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+.ota-badge.confirmed{background:var(--accent-dim);color:var(--accent)}
+.ota-badge.pending{background:rgba(200,160,40,.12);color:#a08620}
+.ota-actions{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+.btn-sm{
+  flex:1;
+  padding:7px 14px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:.78em;
+  font-family:inherit;
+  font-weight:600;
+  transition:all .15s ease;
+  min-height:34px;
+}
+.btn-sm:active{transform:scale(.97)}
+.btn-confirm{
+  background:var(--accent);
+  color:#fff;
+  box-shadow:0 1px 4px rgba(126,148,98,.2);
+}
+.btn-confirm:hover{background:var(--accent-hover)}
+.btn-confirm.are-you-sure{
+  background:#c49a20;
+  box-shadow:0 1px 4px rgba(196,154,32,.25);
+}
+.btn-confirm.are-you-sure:hover{background:#b08a18}
+.btn-rollback{
+  background:var(--danger-dim);
+  color:var(--danger);
+  border:1px solid rgba(191,95,85,.15);
+}
+.btn-rollback:hover{background:rgba(191,95,85,.14)}
+.btn-rollback.are-you-sure{
+  background:var(--danger);
+  color:#fff;
+  border-color:var(--danger);
+}
+.btn-rollback.are-you-sure:hover{background:#a8504a}
+
+/* ---- OTA timer ---- */
+.ota-timer{margin:14px 0 0}
+.ota-timer-bar{height:4px;background:#efede8;border-radius:2px;overflow:hidden}
+.ota-timer-fill{height:100%;background:linear-gradient(90deg,var(--accent),#c49a20,var(--danger));border-radius:2px;transition:width 1s linear}
+.ota-timer-text{font-size:.75em;color:var(--text3);margin-top:2px;text-align:center}
 
 /* ---- Divider ---- */
-.divider{height:1px;background:var(--border);margin:20px 0}
+.divider{height:1px;background:var(--border);margin:4px 0}
 
 /* ---- Device info (system) ---- */
 .info-grid{
@@ -392,36 +500,37 @@ button:active{transform:scale(.97)}
   gap:10px;
 }
 .info-cell{
-  padding:12px;
+  padding:14px;
   background:var(--surface2);
   border-radius:var(--radius-sm);
 }
 .info-cell .info-label{
-  font-size:.7em;
+  font-size:.68em;
   text-transform:uppercase;
   letter-spacing:1px;
   color:var(--text3);
   margin-bottom:4px;
-  font-weight:600;
+  font-weight:700;
 }
 .info-cell .info-value{
   font-size:.92em;
-  font-weight:600;
+  font-weight:700;
   color:var(--text);
   font-variant-numeric:tabular-nums;
 }
 </style>
 </head><body>
 
-<div class="header">
-  <h1>SmallTV</h1>
-  <div class="dot" id="status-dot"></div>
-</div>
-
-<div class="tab-bar">
-  <button class="tab-btn active" data-tab="home" onclick="switchTab('home')">Home</button>
-  <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
-  <button class="tab-btn" data-tab="system" onclick="switchTab('system')">System</button>
+<div class="top-bar">
+  <div class="top-left">
+    <h1>SmallTV</h1>
+    <div class="dot" id="status-dot"></div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="home" onclick="switchTab('home')">Home</button>
+    <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+    <button class="tab-btn" data-tab="system" onclick="switchTab('system')">System</button>
+  </div>
 </div>
 
 <div id="msg"></div>
@@ -503,8 +612,6 @@ button:active{transform:scale(.97)}
     <button class="btn btn-block" onclick="setLoc()">Save Location</button>
   </div>
 
-  <div class="divider"></div>
-
   <div class="section">
     <div class="section-title">Night Mode</div>
     <div class="switch-row">
@@ -542,7 +649,10 @@ button:active{transform:scale(.97)}
     <div class="info-grid">
       <div class="info-cell">
         <div class="info-label">Firmware</div>
-        <div class="info-value" id="s-ver">--</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="info-value" id="s-ver">--</div>
+          <span class="ota-badge" id="ota-badge"></span>
+        </div>
       </div>
       <div class="info-cell">
         <div class="info-label">MAC Address</div>
@@ -559,11 +669,19 @@ button:active{transform:scale(.97)}
     </div>
   </div>
 
-  <div class="divider"></div>
-
   <div class="section">
     <div class="section-title">Firmware</div>
     <button class="btn-sec btn-block" onclick="location.href=API+'/update'">Upload Firmware</button>
+    <div id="ota-pending-wrap" style="display:none">
+      <div class="ota-actions">
+        <button class="btn-sm btn-confirm" id="ota-confirm-btn" onclick="otaConfirm()">Confirm Good</button>
+        <button class="btn-sm btn-rollback" id="ota-rollback-btn" onclick="otaRollback()">Roll Back</button>
+      </div>
+      <div class="ota-timer">
+        <div class="ota-timer-bar"><div class="ota-timer-fill" id="ota-timer-fill"></div></div>
+        <div class="ota-timer-text" id="ota-timer-text"></div>
+      </div>
+    </div>
   </div>
 
   <div class="section">
@@ -577,6 +695,8 @@ button:active{transform:scale(.97)}
 var API = 'http://192.168.86.250';
 
 var selectedSSID = '';
+var otaCountdown = null;
+var otaRemaining = 0;
 
 // ---- Tabs ----
 function switchTab(name) {
@@ -647,6 +767,22 @@ function load() {
 
     // System tab
     if (d.version) document.getElementById('s-ver').textContent = d.version;
+    // OTA status
+    var badge = document.getElementById('ota-badge');
+    var pendingWrap = document.getElementById('ota-pending-wrap');
+    if (d.ota_confirmed != null) {
+      if (d.ota_confirmed) {
+        badge.textContent = 'Confirmed';
+        badge.className = 'ota-badge confirmed';
+        pendingWrap.style.display = 'none';
+        stopOtaTimer();
+      } else {
+        badge.textContent = 'Unconfirmed';
+        badge.className = 'ota-badge pending';
+        pendingWrap.style.display = 'block';
+        startOtaTimer(120 - (d.uptime || 0));
+      }
+    }
     if (d.mac) document.getElementById('s-mac').textContent = d.mac;
     document.getElementById('s-heap').textContent = d.heap ? Math.round(d.heap / 1024) + ' KB' : '--';
     var u = d.uptime || 0;
@@ -708,7 +844,7 @@ function showNets(d) {
     var bars = rssiToBars(n.rssi);
     var safeName = s.replace(/'/g, '&#39;').replace(/\\/g, '\\\\');
     h += '<div class="net" onclick="selectNetwork(\'' + safeName + '\')" id="net-' + safeName.replace(/[^a-zA-Z0-9]/g, '_') + '">';
-    h += '<span class="net-name">' + s + (n.enc ? '<span class="lock">&#128274;</span>' : '') + '</span>';
+    h += '<span class="net-name">' + s + (n.enc ? '<span class="lock"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 256 256"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96Z"></path></svg></span>' : '') + '</span>';
     h += '<span class="rssi"><span class="bars">' + bars + '</span> ' + n.rssi + ' dBm</span>';
     h += '</div>';
   });
@@ -759,13 +895,16 @@ function toggleManualSSID() {
 }
 
 function doScan() {
-  document.getElementById('nets').innerHTML = '<div style="padding:14px 0;color:var(--text2);font-size:.9em">Scanning\u2026</div>';
+  var btn = document.getElementById('scan-btn');
+  btn.textContent = 'Scanning\u2026';
+  btn.disabled = true;
+  document.getElementById('nets').innerHTML = '';
   api('/api/scan?start=1').then(function() {
     var tries = 0;
     var poll = setInterval(function() {
       api('/api/scan').then(function(d) {
-        if (d && !d.scanning) { clearInterval(poll); showNets(d); }
-        else if (++tries > 20) { clearInterval(poll); showNets(d); }
+        if (d && !d.scanning) { clearInterval(poll); btn.textContent = 'Scan Networks'; btn.disabled = false; showNets(d); }
+        else if (++tries > 20) { clearInterval(poll); btn.textContent = 'Scan Networks'; btn.disabled = false; showNets(d); }
       });
     }, 500);
   });
@@ -820,6 +959,68 @@ function confirmReset() {
       .then(function() { msg('Resetting\u2026', true); })
       .catch(function() { msg('Failed', ''); });
   }
+}
+
+// ---- OTA countdown timer ----
+function otaTick() {
+  otaRemaining--;
+  if (otaRemaining < 0) otaRemaining = 0;
+  var min = Math.floor(otaRemaining / 60);
+  var sec = otaRemaining % 60;
+  document.getElementById('ota-timer-text').textContent = 'Auto-rollback in ' + min + ':' + (sec < 10 ? '0' : '') + sec;
+  document.getElementById('ota-timer-fill').style.width = ((120 - otaRemaining) / 120 * 100) + '%';
+  if (otaRemaining <= 0) stopOtaTimer();
+}
+
+function startOtaTimer(remaining) {
+  if (otaCountdown) return;
+  otaRemaining = Math.max(0, Math.floor(remaining));
+  otaTick();
+  otaCountdown = setInterval(otaTick, 1000);
+}
+
+function stopOtaTimer() {
+  if (otaCountdown) { clearInterval(otaCountdown); otaCountdown = null; }
+}
+
+// ---- OTA confirm/rollback ----
+var confirmStep = 0;
+var rollbackStep = 0;
+
+function otaConfirm() {
+  var btn = document.getElementById('ota-confirm-btn');
+  if (confirmStep === 0) {
+    confirmStep = 1;
+    btn.textContent = 'Are you sure?';
+    btn.className = 'btn-sm btn-confirm are-you-sure';
+    setTimeout(function() { if (confirmStep === 1) { confirmStep = 0; btn.textContent = 'Confirm Good'; btn.className = 'btn-sm btn-confirm'; } }, 4000);
+    return;
+  }
+  confirmStep = 0;
+  btn.textContent = 'Confirming\u2026';
+  btn.disabled = true;
+  fetch(API + '/confirm-good').then(function(r) { return r.json(); })
+    .then(function(d) {
+      msg('Firmware confirmed!', true);
+      load();
+    }).catch(function() { msg('Failed to confirm', ''); btn.textContent = 'Confirm Good'; btn.className = 'btn-sm btn-confirm'; btn.disabled = false; });
+}
+
+function otaRollback() {
+  var btn = document.getElementById('ota-rollback-btn');
+  if (rollbackStep === 0) {
+    rollbackStep = 1;
+    btn.textContent = 'Are you sure?';
+    btn.className = 'btn-sm btn-rollback are-you-sure';
+    setTimeout(function() { if (rollbackStep === 1) { rollbackStep = 0; btn.textContent = 'Roll Back'; btn.className = 'btn-sm btn-rollback'; } }, 4000);
+    return;
+  }
+  rollbackStep = 0;
+  btn.textContent = 'Rolling back\u2026';
+  btn.disabled = true;
+  fetch(API + '/rollback', { method: 'POST' })
+    .then(function() { msg('Rolling back and rebooting\u2026', true); })
+    .catch(function() { msg('Device is rebooting\u2026', true); });
 }
 
 // ---- Init ----

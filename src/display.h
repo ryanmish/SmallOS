@@ -62,7 +62,7 @@ void    displayInit();
 
 // Rendering
 void    displayRenderClock(const char* timeStr, const char* dateStr, const WeatherData* weather);
-void    displayRenderAPMode(const char* ssid, const char* password, const char* ip);
+void    displayRenderAPMode(const char* ssid, const char* ip);
 void    displayRenderMessage(const char* msg);
 void    displayRenderOTAProgress(int percent);
 

@@ -155,8 +155,13 @@ void setup() {
     // 5. Boot failure counter
     bootCounterIncrement();
 
-    // 6. Emergency reset if boot keeps failing
+    // 6. Emergency: if boot keeps failing and OTA is pending, roll back firmware.
+    //    Otherwise fall through to settings reset.
     if (bootCounterCheck()) {
+        if (otaIsPending()) {
+            logPrintf("Boot crash loop detected with pending OTA - rolling back firmware");
+            otaRollback();  // Marks invalid + reboots, does not return
+        }
         logPrintf("Emergency reset triggered by boot failure counter");
         settingsReset();  // Wipes NVS and reboots
         // Does not return
@@ -165,7 +170,14 @@ void setup() {
     // 7. Power cycle counter
     powerCycleIncrement();
 
-    // 8. Factory reset if rapid power cycling detected
+    // 8a. OTA rollback via 3 quick power cycles (only when firmware is pending)
+    if (otaIsPending() && powerCycleCount() >= POWER_CYCLE_ROLLBACK) {
+        logPrintf("Rapid power cycle rollback (%d cycles with pending OTA)", powerCycleCount());
+        powerCycleReset();
+        otaRollback();  // Marks invalid + reboots, does not return
+    }
+
+    // 8b. Factory reset if rapid power cycling detected (5 cycles)
     if (powerCycleCheck()) {
         logPrintf("Factory reset triggered by rapid power cycling");
         // Clear the power cycle counter FIRST to prevent infinite reboot loop
@@ -277,29 +289,34 @@ void loop() {
     if ((now - lastDisplayUpdate) >= DISPLAY_UPDATE_MS) {
         lastDisplayUpdate = now;
 
-        switch (currentPage) {
-            case PAGE_CLOCK_WEATHER: {
-                char timeBuf[8];
-                char dateBuf[16];
+        if (wifiIsAPMode()) {
+            // Show AP setup screen with SSID and IP
+            displayRenderAPMode(wifiGetSSID().c_str(), wifiGetIP().c_str());
+        } else {
+            switch (currentPage) {
+                case PAGE_CLOCK_WEATHER: {
+                    char timeBuf[8];
+                    char dateBuf[16];
 
-                if (getFormattedTime(timeBuf, sizeof(timeBuf),
-                                     dateBuf, sizeof(dateBuf))) {
-                    const WeatherData& weather = weatherGet();
-                    displayRenderClock(timeBuf, dateBuf,
-                                       weather.valid ? &weather : nullptr);
-                } else {
-                    displayRenderMessage("Waiting for NTP...");
+                    if (getFormattedTime(timeBuf, sizeof(timeBuf),
+                                         dateBuf, sizeof(dateBuf))) {
+                        const WeatherData& weather = weatherGet();
+                        displayRenderClock(timeBuf, dateBuf,
+                                           weather.valid ? &weather : nullptr);
+                    } else {
+                        displayRenderMessage("Waiting for NTP...");
+                    }
+                    break;
                 }
-                break;
-            }
 
-            case PAGE_SYSTEM_INFO: {
-                renderSystemInfo();
-                break;
-            }
+                case PAGE_SYSTEM_INFO: {
+                    renderSystemInfo();
+                    break;
+                }
 
-            default:
-                break;
+                default:
+                    break;
+            }
         }
     }
 

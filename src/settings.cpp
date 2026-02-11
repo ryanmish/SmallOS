@@ -25,7 +25,7 @@ static void applyDefaults() {
     currentSettings.tempFahrenheit = TEMP_UNIT_FAHRENHEIT;
     currentSettings.latitude       = WEATHER_DEFAULT_LAT;
     currentSettings.longitude      = WEATHER_DEFAULT_LON;
-    currentSettings.gmtOffsetSec   = 0;
+    currentSettings.gmtOffsetSec   = -18000;  // US Eastern (UTC-5)
     strncpy(currentSettings.hostname, "smalltv", sizeof(currentSettings.hostname) - 1);
     currentSettings.hostname[sizeof(currentSettings.hostname) - 1] = '\0';
 }
@@ -144,4 +144,8 @@ bool powerCycleCheck() {
         return true;
     }
     return false;
+}
+
+int powerCycleCount() {
+    return prefs.getInt(KEY_POWER_CYCLES, 0);
 }

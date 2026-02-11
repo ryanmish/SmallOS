@@ -39,4 +39,5 @@ bool bootCounterCheck();                // True if threshold exceeded
 // Exceeding the threshold triggers a factory reset.
 void powerCycleIncrement();             // Call at boot
 void powerCycleReset();                 // Call after POWER_CYCLE_WINDOW_MS of uptime
-bool powerCycleCheck();                 // True if threshold exceeded
+bool powerCycleCheck();                 // True if factory reset threshold exceeded
+int  powerCycleCount();                 // Current counter value

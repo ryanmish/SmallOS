@@ -211,50 +211,49 @@ void displayRenderClock(const char* timeStr, const char* dateStr, const WeatherD
 
 // --- AP Mode screen ---
 
-void displayRenderAPMode(const char* ssid, const char* password, const char* ip) {
+void displayRenderAPMode(const char* ssid, const char* ip) {
     clearPrevState();
 
     lcd.startWrite();
     lcd.fillScreen(COL_BG);
 
-    // Title
-    drawCenteredText(CENTER_X, 30, "WiFi Setup",
+    // Title - "SmallTV"
+    drawCenteredText(CENTER_X, 35, "SmallTV",
+                     &fonts::Font4, 1.0f, COL_WHITE, COL_BG);
+
+    // Firmware version
+    char verBuf[24];
+    snprintf(verBuf, sizeof(verBuf), "v%s", FW_VERSION);
+    drawCenteredText(CENTER_X, 62, verBuf,
+                     &fonts::Font2, 1.0f, COL_GREY, COL_BG);
+
+    // Divider
+    lcd.drawFastHLine(30, 82, DISPLAY_WIDTH - 60, COL_DARK_GREY);
+
+    // "Connect to WiFi:" label
+    drawCenteredText(CENTER_X, 102, "Connect to WiFi:",
+                     &fonts::Font2, 1.0f, COL_GREY, COL_BG);
+
+    // AP SSID name
+    drawCenteredText(CENTER_X, 130, ssid,
                      &fonts::Font4, 1.0f, COL_CYAN, COL_BG);
 
     // Divider
-    lcd.drawFastHLine(30, 52, DISPLAY_WIDTH - 60, COL_DARK_GREY);
+    lcd.drawFastHLine(30, 158, DISPLAY_WIDTH - 60, COL_DARK_GREY);
 
-    // Instructions
-    drawCenteredText(CENTER_X, 72, "Connect to WiFi:",
+    // "Then open:" label
+    drawCenteredText(CENTER_X, 178, "Then open:",
                      &fonts::Font2, 1.0f, COL_GREY, COL_BG);
-
-    // SSID
-    drawCenteredText(CENTER_X, 100, ssid,
-                     &fonts::Font2, 1.0f, COL_WHITE, COL_BG);
-
-    // Password label
-    drawCenteredText(CENTER_X, 130, "Password:",
-                     &fonts::Font2, 1.0f, COL_GREY, COL_BG);
-
-    // Password value
-    drawCenteredText(CENTER_X, 150, password,
-                     &fonts::Font2, 1.0f, COL_WHITE, COL_BG);
-
-    // Divider
-    lcd.drawFastHLine(30, 175, DISPLAY_WIDTH - 60, COL_DARK_GREY);
 
     // IP address
-    drawCenteredText(CENTER_X, 195, "Then open:",
-                     &fonts::Font2, 1.0f, COL_GREY, COL_BG);
-
     char urlBuf[32];
     snprintf(urlBuf, sizeof(urlBuf), "http://%s", ip);
-    drawCenteredText(CENTER_X, 215, urlBuf,
+    drawCenteredText(CENTER_X, 206, urlBuf,
                      &fonts::Font2, 1.0f, COL_CYAN, COL_BG);
 
     lcd.endWrite();
 
-    logPrintf("Rendered AP mode screen (SSID: %s)", ssid);
+    logPrintf("Rendered AP mode screen (SSID: %s, IP: %s)", ssid, ip);
 }
 
 // --- Full-screen message ---

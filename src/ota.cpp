@@ -6,11 +6,33 @@
 #include <ArduinoOTA.h>
 #include <Update.h>
 #include <esp_ota_ops.h>
+#include <Preferences.h>
+
+// --- NVS keys for rollback ---
+static const char* OTA_NVS_NAMESPACE = "ota";
+static const char* KEY_PENDING       = "pending";
 
 // --- Module state ---
 
 static bool          firmwareConfirmed = false;
 static unsigned long bootTimeMs        = 0;
+
+// --- NVS helpers ---
+
+static void setPendingFlag(bool pending) {
+    Preferences p;
+    p.begin(OTA_NVS_NAMESPACE, false);
+    p.putBool(KEY_PENDING, pending);
+    p.end();
+}
+
+static bool getPendingFlag() {
+    Preferences p;
+    p.begin(OTA_NVS_NAMESPACE, true);
+    bool val = p.getBool(KEY_PENDING, false);
+    p.end();
+    return val;
+}
 
 // --- Rollback watchdog ---
 
@@ -24,9 +46,9 @@ static void checkRollbackTimeout() {
     if (elapsed >= OTA_CONFIRM_TIMEOUT_MS) {
         logPrintf("[OTA] Rollback timeout expired (%lu ms without /confirm-good)",
                   OTA_CONFIRM_TIMEOUT_MS);
-        logPrintf("[OTA] Rebooting to trigger bootloader rollback...");
+        logPrintf("[OTA] Rolling back to previous firmware...");
         delay(500);
-        ESP.restart();
+        esp_ota_mark_app_invalid_rollback_and_reboot();
     }
 }
 
@@ -91,21 +113,15 @@ static void setupArduinoOTA() {
 void otaInit() {
     bootTimeMs = millis();
 
-    // Check if the running firmware is pending verification (i.e., was just OTA-flashed).
-    // If the partition is already marked valid, skip the rollback watchdog entirely.
-    // This prevents unnecessary 10-minute reboot timers on normal (non-OTA) boots.
-    const esp_partition_t* running = esp_ota_get_running_partition();
-    esp_ota_img_states_t state;
-
-    if (running && esp_ota_get_state_partition(running, &state) == ESP_OK &&
-        state == ESP_OTA_IMG_PENDING_VERIFY) {
+    // Check NVS flag set by the upload handler before rebooting.
+    // This works around Update.end(true) auto-validating the partition.
+    if (getPendingFlag()) {
         firmwareConfirmed = false;
         logPrintf("[OTA] Firmware pending verification - rollback watchdog active (%lu ms)",
                   OTA_CONFIRM_TIMEOUT_MS);
     } else {
-        // Normal boot or already verified - no rollback needed
         firmwareConfirmed = true;
-        logPrintf("[OTA] Firmware already verified, rollback watchdog not needed");
+        logPrintf("[OTA] Normal boot, rollback watchdog not needed");
     }
 
     setupArduinoOTA();
@@ -124,7 +140,7 @@ void otaConfirmGood() {
         return;
     }
 
-    esp_ota_mark_app_valid_cancel_rollback();
+    setPendingFlag(false);
     firmwareConfirmed = true;
 
     unsigned long elapsed = millis() - bootTimeMs;
@@ -132,8 +148,19 @@ void otaConfirmGood() {
     logPrintf("[OTA] Rollback watchdog cancelled");
 }
 
+void otaRollback() {
+    logPrintf("[OTA] Manual rollback requested");
+    setPendingFlag(false);
+    delay(200);
+    esp_ota_mark_app_invalid_rollback_and_reboot();
+}
+
 bool otaIsConfirmed() {
     return firmwareConfirmed;
+}
+
+bool otaIsPending() {
+    return getPendingFlag();
 }
 
 void otaHandleUpload(WebServer& server) {
@@ -180,6 +207,9 @@ void otaHandleUpload(WebServer& server) {
         case UPLOAD_FILE_END: {
             if (Update.end(true)) {
                 logPrintf("[OTA] Web upload complete: %u bytes", upload.totalSize);
+                // Set NVS flag so the new firmware activates rollback watchdog on boot
+                setPendingFlag(true);
+                logPrintf("[OTA] Pending flag set (new firmware requires /confirm-good)");
                 logPrintf("[OTA] Rebooting to apply update...");
             } else {
                 logPrintf("[OTA] Update.end() failed: %s", Update.errorString());

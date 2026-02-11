@@ -55,7 +55,7 @@
 #define TEMP_UNIT_FAHRENHEIT    true    // Default to Fahrenheit
 
 // --- OTA ---
-#define OTA_CONFIRM_TIMEOUT_MS  600000  // 10 minutes to call /confirm-good
+#define OTA_CONFIRM_TIMEOUT_MS  120000  // 2 minutes to call /confirm-good
 #define OTA_PASSWORD            "smalltv"
 
 // --- Settings (NVS) ---
@@ -68,5 +68,6 @@
 
 // --- Boot Safety ---
 #define BOOT_FAIL_THRESHOLD     5       // Emergency reset after N consecutive failures
+#define POWER_CYCLE_ROLLBACK    3       // OTA rollback after N quick power cycles (when pending)
 #define POWER_CYCLE_THRESHOLD   5       // Factory reset after N quick power cycles
 #define POWER_CYCLE_WINDOW_MS   10000   // Must stay up this long to reset power cycle counter
