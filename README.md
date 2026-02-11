@@ -41,7 +41,27 @@ The web interface is a single-page app served directly from the ESP32's flash me
 
 There's also a separate firmware upload page at `/update` with a drag-and-drop file picker and progress bar.
 
-The full standalone version of the web UI lives in `web-ui/index.html` for development. The version embedded in the firmware (inside `src/web_server.cpp`) is gzip-compressed and served with `Content-Encoding: gzip`.
+The full standalone version of the web UI lives in `web-ui/index.html` for development. During development, the HTML uses a hardcoded API URL (`http://192.168.86.250`) to talk to the device from a local browser. When building firmware, this URL must be stripped so the embedded UI uses relative paths instead.
+
+### Rebuilding the Embedded Web UI
+
+After editing `web-ui/index.html`, regenerate the gzipped header before building:
+
+```bash
+# Dev API IP is 192.168.86.250 — this sed strips it for production
+sed "s|var API = 'http://192.168.86.250'|var API = ''|" web-ui/index.html \
+  | gzip -9 | xxd -i | grep '0x' > /tmp/html_data.tmp
+
+echo "const unsigned char INDEX_HTML_GZ[] PROGMEM = {" > include/index_html_gz.h
+cat /tmp/html_data.tmp >> include/index_html_gz.h
+echo "};" >> include/index_html_gz.h
+
+wc -c < <(sed "s|var API = 'http://192.168.86.250'|var API = ''|" web-ui/index.html \
+  | gzip -9) | xargs -I{} echo "const unsigned int INDEX_HTML_GZ_LEN = {};" \
+  >> include/index_html_gz.h
+```
+
+Then build normally with `pio run`.
 
 ## Project Structure
 
