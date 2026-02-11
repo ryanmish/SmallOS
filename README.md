@@ -1,6 +1,6 @@
-# SmallTV Open Firmware
+# SmallOS
 
-A clean, minimal base firmware for the **GeekMagic SmallTV Pro**. It handles the basics (WiFi setup, web-based configuration, OTA updates, a clock/weather display) so you can fork it and focus on building whatever you actually want your SmallTV to do.
+Open firmware for the **GeekMagic SmallTV Pro**. It handles the basics (WiFi setup, web-based configuration, OTA updates, a clock/weather display) so you can fork it and focus on building whatever you actually want your SmallTV to do.
 
 ## Target Hardware
 
