@@ -489,6 +489,8 @@ button:active{transform:scale(.97)}
 .ota-timer-bar{height:4px;background:#efede8;border-radius:2px;overflow:hidden}
 .ota-timer-fill{height:100%;background:linear-gradient(90deg,var(--accent),#c49a20,var(--danger));border-radius:2px;transition:width 1s linear}
 .ota-timer-text{font-size:.75em;color:var(--text3);margin-top:2px;text-align:center}
+.ota-spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--surface2);border-top-color:var(--accent);border-radius:50%;animation:otaSpin 1.5s linear infinite;vertical-align:-1px;margin-left:5px}
+@keyframes otaSpin{to{transform:rotate(360deg)}}
 
 /* ---- Divider ---- */
 .divider{height:1px;background:var(--border);margin:4px 0}
@@ -969,7 +971,18 @@ function otaTick() {
   var sec = otaRemaining % 60;
   document.getElementById('ota-timer-text').textContent = 'Auto-rollback in ' + min + ':' + (sec < 10 ? '0' : '') + sec;
   document.getElementById('ota-timer-fill').style.width = ((120 - otaRemaining) / 120 * 100) + '%';
-  if (otaRemaining <= 0) stopOtaTimer();
+  if (otaRemaining <= 0) {
+    stopOtaTimer();
+    var tt = document.getElementById('ota-timer-text');
+    tt.innerHTML = '<span id="ota-reboot-text">Rebooting\u2026 10s</span> <span class="ota-spinner"></span>';
+    var rebootSec = 10;
+    var ri = setInterval(function() {
+      rebootSec--;
+      var rt = document.getElementById('ota-reboot-text');
+      if (rebootSec <= 0) { clearInterval(ri); rt.textContent = 'Redirecting\u2026'; window.location.reload(); }
+      else { rt.textContent = 'Rebooting\u2026 ' + rebootSec + 's'; }
+    }, 1000);
+  }
 }
 
 function startOtaTimer(remaining) {

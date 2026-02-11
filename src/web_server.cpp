@@ -76,10 +76,10 @@ button:disabled{background:#efede8;color:#a59d8e;cursor:default;transform:none;b
 <a class="back" href="/">&larr; Back</a>
 <div class="card">
 <h2>Firmware Update</h2>
+<div class="warn-box">Do not power off the device during upload.</div>
 <form method="POST" action="/ota" enctype="multipart/form-data" id="uf">
 <label class="file-label" id="fl" onclick="document.getElementById('fi').click()">Choose .bin file</label>
 <input type="file" name="update" id="fi" accept=".bin" required>
-<div class="warn-box">Do not power off the device during upload.</div>
 <button type="submit" id="ubtn">Upload Firmware</button>
 </form>
 <div class="progress-wrap" id="pw">
@@ -100,7 +100,7 @@ var ubtn=document.getElementById('ubtn');
 pw.style.display='block';ubtn.disabled=true;ubtn.textContent='Uploading...';
 xhr.open('POST','/ota');
 xhr.upload.onprogress=function(e){if(e.lengthComputable){var pct=Math.round(e.loaded/e.total*100);pf.style.width=pct+'%';prog.textContent=pct+'%'}};
-xhr.onload=function(){if(xhr.status==200){pf.style.width='100%';prog.className='done';ubtn.textContent='Complete';var sec=10;prog.innerHTML='Rebooting\u2026 '+sec+'s <span class="spinner"></span>';var ci=setInterval(function(){sec--;if(sec<=0){clearInterval(ci);prog.innerHTML='Redirecting\u2026';window.location.href='/'}else{prog.innerHTML='Rebooting\u2026 '+sec+'s <span class="spinner"></span>'}},1000)}else{prog.textContent='Upload failed: '+xhr.responseText;prog.className='fail';ubtn.disabled=false;ubtn.textContent='Retry'}};
+xhr.onload=function(){if(xhr.status==200){pf.style.width='100%';prog.className='done';ubtn.textContent='Complete';prog.innerHTML='<span id="rb-text">Rebooting\u2026 10s</span> <span class="spinner"></span>';var sec=10;var ci=setInterval(function(){sec--;var rt=document.getElementById('rb-text');if(sec<=0){clearInterval(ci);rt.textContent='Redirecting\u2026';window.location.href='/'}else{rt.textContent='Rebooting\u2026 '+sec+'s'}},1000)}else{prog.textContent='Upload failed: '+xhr.responseText;prog.className='fail';ubtn.disabled=false;ubtn.textContent='Retry'}};
 xhr.onerror=function(){prog.textContent='Upload failed';prog.className='fail';ubtn.disabled=false;ubtn.textContent='Retry'};
 xhr.send(fd)})
 </script>
