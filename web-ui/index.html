@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmallTV</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#faf7f4;
+  --surface:#ffffff;
+  --surface2:#f2eeea;
+  --border:rgba(0,0,0,.07);
+  --text:#3a322c;
+  --text2:#8a7f74;
+  --text3:#b8ad9f;
+  --accent:#e07a5f;
+  --accent-dim:rgba(224,122,95,.1);
+  --danger:#d44;
+  --danger-dim:rgba(221,68,68,.08);
+  --radius:14px;
+  --radius-sm:10px;
+}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  max-width:480px;
+  margin:0 auto;
+  font-size:15px;
+  line-height:1.5;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---- Header ---- */
+.header{
+  padding:20px 20px 0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.header h1{
+  font-size:1.15em;
+  font-weight:700;
+  color:var(--text);
+  letter-spacing:.3px;
+}
+.header .dot{
+  width:7px;height:7px;
+  border-radius:50%;
+  background:#ccc4ba;
+  flex-shrink:0;
+}
+.header .dot.online{background:#4ade80}
+
+/* ---- Tabs ---- */
+.tab-bar{
+  display:flex;
+  padding:16px 20px 0;
+  gap:4px;
+  position:sticky;
+  top:0;
+  background:var(--bg);
+  z-index:50;
+}
+.tab-bar::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:1px;
+  background:var(--border);
+}
+.tab-btn{
+  flex:1;
+  padding:10px 0 12px;
+  background:none;
+  border:none;
+  color:var(--text3);
+  font-size:.82em;
+  font-weight:600;
+  letter-spacing:.3px;
+  cursor:pointer;
+  position:relative;
+  transition:color .2s;
+  text-transform:uppercase;
+}
+.tab-btn:hover{color:var(--text2)}
+.tab-btn.active{color:var(--accent)}
+.tab-btn.active::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:20%;right:20%;
+  height:2px;
+  background:var(--accent);
+  border-radius:2px 2px 0 0;
+}
+
+/* ---- Content ---- */
+.tab-content{
+  display:none;
+  padding:20px;
+  flex:1;
+  animation:fadeIn .2s ease;
+}
+.tab-content.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ---- Section ---- */
+.section{margin-bottom:28px}
+.section:last-child{margin-bottom:0}
+.section-title{
+  font-size:.7em;
+  color:var(--text3);
+  text-transform:uppercase;
+  letter-spacing:1.8px;
+  font-weight:600;
+  margin-bottom:14px;
+}
+
+/* ---- Status rows ---- */
+.status-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:11px 0;
+  border-bottom:1px solid var(--border);
+}
+.status-row:last-child{border-bottom:none}
+.status-label{color:var(--text2);font-size:.9em}
+.status-value{color:var(--text);font-size:.9em;font-weight:500}
+.badge{
+  display:inline-block;
+  background:var(--accent-dim);
+  color:var(--accent);
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:.78em;
+  font-weight:600;
+}
+
+/* ---- Inputs ---- */
+label{
+  display:block;
+  font-size:.82em;
+  color:var(--text2);
+  margin-bottom:6px;
+  font-weight:500;
+}
+input[type=text],input[type=password],input[type=number],select{
+  width:100%;
+  padding:12px 14px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  color:var(--text);
+  font-size:.9em;
+  font-family:inherit;
+  margin-bottom:12px;
+  transition:border-color .2s,box-shadow .2s;
+  outline:none;
+  appearance:none;
+  -webkit-appearance:none;
+}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a7f74' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  padding-right:36px;
+  cursor:pointer;
+}
+input:focus,select:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-dim);
+}
+
+/* ---- Range slider ---- */
+input[type=range]{
+  -webkit-appearance:none;
+  width:100%;
+  margin:6px 0 4px;
+  background:transparent;
+  outline:none;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:4px;
+  background:var(--surface2);
+  border-radius:2px;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:20px;height:20px;
+  border-radius:50%;
+  background:var(--accent);
+  margin-top:-8px;
+  cursor:pointer;
+  box-shadow:0 1px 6px rgba(0,0,0,.35);
+  transition:transform .15s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.1)}
+.range-row{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.range-row input[type=range]{flex:1}
+.range-val{
+  font-size:.85em;
+  font-weight:600;
+  color:var(--text);
+  min-width:38px;
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---- Buttons ---- */
+button{
+  padding:11px 20px;
+  border:none;
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  font-size:.88em;
+  font-family:inherit;
+  font-weight:600;
+  transition:all .15s ease;
+  min-height:44px;
+}
+button:active{transform:scale(.97)}
+.btn{background:var(--accent);color:#fff}
+.btn:hover{background:#d06a4f}
+.btn-sec{background:var(--surface);color:var(--text2);border:1px solid var(--border)}
+.btn-sec:hover{background:var(--surface2);color:var(--text)}
+.btn-warn{background:var(--danger-dim);color:var(--danger);border:1px solid rgba(224,85,85,.2)}
+.btn-warn:hover{background:rgba(224,85,85,.18)}
+.btn-block{width:100%;margin-top:4px}
+
+/* ---- Toggle (F/C) ---- */
+.toggle{display:flex;gap:0;margin-bottom:12px}
+.toggle button{
+  flex:1;
+  padding:9px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text3);
+  min-height:40px;
+  transition:all .2s;
+  font-weight:500;
+}
+.toggle button:first-child{border-radius:var(--radius-sm) 0 0 var(--radius-sm)}
+.toggle button:last-child{border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+.toggle button:hover{color:var(--text2);transform:none}
+.toggle button:active{transform:none}
+.toggle button.active{
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+  font-weight:700;
+}
+
+/* ---- Switch toggle ---- */
+.switch-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 0;
+}
+.switch-row .switch-label{
+  font-size:.92em;
+  color:var(--text);
+  font-weight:500;
+}
+.switch{
+  position:relative;
+  width:44px;
+  height:26px;
+  flex-shrink:0;
+}
+.switch input{opacity:0;width:0;height:0}
+.switch-track{
+  position:absolute;
+  inset:0;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:13px;
+  cursor:pointer;
+  transition:background .2s,border-color .2s;
+}
+.switch-track::after{
+  content:'';
+  position:absolute;
+  top:3px;left:3px;
+  width:18px;height:18px;
+  background:#ccc4ba;
+  border-radius:50%;
+  transition:transform .2s,background .2s;
+}
+.switch input:checked+.switch-track{
+  background:var(--accent-dim);
+  border-color:var(--accent);
+}
+.switch input:checked+.switch-track::after{
+  transform:translateX(18px);
+  background:var(--accent);
+}
+
+/* ---- WiFi networks ---- */
+.net-list{margin:12px 0}
+.net{
+  padding:12px 14px;
+  margin:0 0 6px;
+  border-radius:var(--radius-sm);
+  background:var(--surface2);
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  transition:all .15s ease;
+  border:2px solid transparent;
+}
+.net:hover{background:#ede8e3}
+.net.selected{
+  border-color:var(--accent);
+  background:var(--accent-dim);
+}
+.net-name{font-size:.9em;font-weight:500}
+.net-name .lock{margin-left:5px;font-size:.8em;opacity:.5}
+.rssi{color:var(--text3);font-size:.8em;font-family:monospace;white-space:nowrap}
+.bars{letter-spacing:1px;margin-right:4px;font-size:.9em}
+
+.selected-net{
+  padding:14px;
+  background:var(--accent-dim);
+  border-radius:var(--radius-sm);
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.selected-net-label{font-size:.78em;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.selected-net-name{font-size:.95em;font-weight:600;color:var(--text)}
+.manual-link{
+  font-size:.8em;
+  color:var(--accent);
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+  margin-bottom:10px;
+  opacity:.7;
+  transition:opacity .15s;
+}
+.manual-link:hover{opacity:1}
+
+/* ---- Night mode time pickers ---- */
+.time-row{
+  display:flex;
+  gap:12px;
+  margin-bottom:12px;
+}
+.time-row .time-col{flex:1}
+.time-row label{margin-bottom:4px}
+
+/* ---- Toast ---- */
+#msg{
+  position:fixed;
+  top:16px;
+  left:50%;
+  transform:translateX(-50%);
+  width:calc(100% - 40px);
+  max-width:440px;
+  padding:12px 16px;
+  border-radius:var(--radius-sm);
+  display:none;
+  font-size:.88em;
+  font-weight:500;
+  z-index:200;
+  box-shadow:0 4px 20px rgba(0,0,0,.1);
+}
+.ok{background:#f0faf3;color:#2d8a4e;border-left:3px solid #4ade80}
+.err{background:#fef2f2;color:#c33;border-left:3px solid #f87171}
+
+/* ---- Divider ---- */
+.divider{height:1px;background:var(--border);margin:20px 0}
+
+/* ---- Device info (system) ---- */
+.info-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.info-cell{
+  padding:12px;
+  background:var(--surface2);
+  border-radius:var(--radius-sm);
+}
+.info-cell .info-label{
+  font-size:.7em;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:var(--text3);
+  margin-bottom:4px;
+  font-weight:600;
+}
+.info-cell .info-value{
+  font-size:.92em;
+  font-weight:600;
+  color:var(--text);
+  font-variant-numeric:tabular-nums;
+}
+</style>
+</head><body>
+
+<div class="header">
+  <h1>SmallTV</h1>
+  <div class="dot" id="status-dot"></div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="home" onclick="switchTab('home')">Home</button>
+  <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+  <button class="tab-btn" data-tab="system" onclick="switchTab('system')">System</button>
+</div>
+
+<div id="msg"></div>
+
+<!-- ==================== HOME TAB ==================== -->
+<div class="tab-content active" id="tab-home">
+
+  <div class="section">
+    <div class="section-title">Status</div>
+    <div class="status-row"><span class="status-label">WiFi</span><span class="status-value" id="s-wifi">--</span></div>
+    <div class="status-row"><span class="status-label">IP Address</span><span class="status-value" id="s-ip">--</span></div>
+    <div class="status-row"><span class="status-label">Signal</span><span class="status-value" id="s-rssi">--</span></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">WiFi Network</div>
+    <button class="btn-sec btn-block" onclick="doScan()" id="scan-btn">Scan Networks</button>
+    <div class="net-list" id="nets"></div>
+
+    <div id="selected-net-box" style="display:none">
+      <div class="selected-net">
+        <div>
+          <div class="selected-net-label">Selected network</div>
+          <div class="selected-net-name" id="selected-net-name"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="manual-entry-row">
+      <a class="manual-link" id="manual-toggle" onclick="toggleManualSSID()">Enter SSID manually</a>
+      <div id="manual-ssid-wrap" style="display:none">
+        <input type="text" id="w-ssid" placeholder="Network name">
+      </div>
+    </div>
+
+    <label>Password</label>
+    <input type="password" id="w-pass" placeholder="Enter password">
+    <button class="btn btn-block" onclick="doConnect()">Connect</button>
+  </div>
+</div>
+
+<!-- ==================== SETTINGS TAB ==================== -->
+<div class="tab-content" id="tab-settings">
+
+  <div class="section">
+    <div class="section-title">Display</div>
+    <label>Brightness</label>
+    <div class="range-row">
+      <input type="range" id="brt" min="0" max="100" oninput="document.getElementById('brt-val').textContent=this.value+'%'" onchange="setParam('brt',this.value)">
+      <span class="range-val" id="brt-val">--</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Temperature</div>
+    <div class="toggle">
+      <button id="btn-f" onclick="setUnit(true)">&#176;F</button>
+      <button id="btn-c" onclick="setUnit(false)">&#176;C</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Timezone</div>
+    <select id="gmt" onchange="setParam('gmt',this.value)">
+      <option value="-18000">US Eastern (UTC-5)</option>
+      <option value="-21600">US Central (UTC-6)</option>
+      <option value="-25200">US Mountain (UTC-7)</option>
+      <option value="-28800">US Pacific (UTC-8)</option>
+      <option value="0">UTC</option>
+    </select>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Location</div>
+    <label>Latitude</label>
+    <input type="number" id="lat" step="0.0001" placeholder="e.g. 40.7128">
+    <label>Longitude</label>
+    <input type="number" id="lon" step="0.0001" placeholder="e.g. -74.0060">
+    <button class="btn btn-block" onclick="setLoc()">Save Location</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="section-title">Night Mode</div>
+    <div class="switch-row">
+      <span class="switch-label">Enable night mode</span>
+      <label class="switch">
+        <input type="checkbox" id="night-on" onchange="setParam('nightOn',this.checked?1:0)">
+        <span class="switch-track"></span>
+      </label>
+    </div>
+    <div id="night-options">
+      <div class="time-row">
+        <div class="time-col">
+          <label>Start hour</label>
+          <select id="night-start" onchange="setParam('nightStart',this.value)"></select>
+        </div>
+        <div class="time-col">
+          <label>End hour</label>
+          <select id="night-end" onchange="setParam('nightEnd',this.value)"></select>
+        </div>
+      </div>
+      <label>Night brightness</label>
+      <div class="range-row">
+        <input type="range" id="night-brt" min="0" max="100" value="0" oninput="document.getElementById('night-brt-val').textContent=this.value+'%'" onchange="setParam('nightBrt',this.value)">
+        <span class="range-val" id="night-brt-val">0%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SYSTEM TAB ==================== -->
+<div class="tab-content" id="tab-system">
+
+  <div class="section">
+    <div class="section-title">Device Info</div>
+    <div class="info-grid">
+      <div class="info-cell">
+        <div class="info-label">Firmware</div>
+        <div class="info-value" id="s-ver">--</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">MAC Address</div>
+        <div class="info-value" id="s-mac">--</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Free Heap</div>
+        <div class="info-value" id="s-heap">--</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Uptime</div>
+        <div class="info-value" id="s-up">--</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="section-title">Firmware</div>
+    <button class="btn-sec btn-block" onclick="location.href=API+'/update'">Upload Firmware</button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Reset</div>
+    <button class="btn-warn btn-block" id="rst-btn" onclick="confirmReset()">Factory Reset</button>
+  </div>
+</div>
+
+<script>
+// *** DEVELOPMENT: Set this to your device IP. Set to '' for production (embedded). ***
+var API = 'http://192.168.86.250';
+
+var selectedSSID = '';
+
+// ---- Tabs ----
+function switchTab(name) {
+  var tabs = document.querySelectorAll('.tab-btn');
+  var panels = document.querySelectorAll('.tab-content');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].className = tabs[i].getAttribute('data-tab') === name ? 'tab-btn active' : 'tab-btn';
+  }
+  for (var i = 0; i < panels.length; i++) {
+    panels[i].className = panels[i].id === 'tab-' + name ? 'tab-content active' : 'tab-content';
+  }
+}
+
+// ---- Toast ----
+function msg(t, ok) {
+  var m = document.getElementById('msg');
+  m.textContent = t;
+  m.className = ok ? 'ok' : 'err';
+  m.style.display = 'block';
+  setTimeout(function() { m.style.display = 'none'; }, 3500);
+}
+
+// ---- Helpers ----
+function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function api(u, o) { return fetch(API + u, o).then(function(r) { return r.json(); }).catch(function(e) { msg('Request failed', ''); }); }
+function rssiToBars(r) {
+  if (r >= -50) return '\u2582\u2584\u2586\u2588';
+  if (r >= -65) return '\u2582\u2584\u2586';
+  if (r >= -80) return '\u2582\u2584';
+  return '\u2582';
+}
+
+function formatHour(h) {
+  if (h === 0) return '12 AM';
+  if (h < 12) return h + ' AM';
+  if (h === 12) return '12 PM';
+  return (h - 12) + ' PM';
+}
+
+// ---- Populate night mode hour dropdowns ----
+(function() {
+  var startSel = document.getElementById('night-start');
+  var endSel = document.getElementById('night-end');
+  for (var i = 0; i < 24; i++) {
+    var label = formatHour(i);
+    startSel.innerHTML += '<option value="' + i + '">' + label + '</option>';
+    endSel.innerHTML += '<option value="' + i + '">' + label + '</option>';
+  }
+  startSel.value = '22';
+  endSel.value = '7';
+})();
+
+// ---- Load status ----
+function load() {
+  api('/api/status').then(function(d) {
+    if (!d) return;
+
+    // Status dot
+    var dot = document.getElementById('status-dot');
+    if (d.ssid && d.ip) dot.className = 'dot online';
+
+    // Home tab
+    document.getElementById('s-wifi').textContent = d.ssid || 'Not connected';
+    document.getElementById('s-ip').textContent = d.ip || '--';
+    if (d.rssi != null) {
+      document.getElementById('s-rssi').innerHTML = '<span class="bars">' + rssiToBars(d.rssi) + '</span> ' + d.rssi + ' dBm';
+    }
+
+    // System tab
+    if (d.version) document.getElementById('s-ver').textContent = d.version;
+    if (d.mac) document.getElementById('s-mac').textContent = d.mac;
+    document.getElementById('s-heap').textContent = d.heap ? Math.round(d.heap / 1024) + ' KB' : '--';
+    var u = d.uptime || 0;
+    var h = Math.floor(u / 3600);
+    var m = Math.floor((u % 3600) / 60);
+    document.getElementById('s-up').textContent = h + 'h ' + m + 'm';
+
+    // Settings: brightness
+    if (d.brightness != null) {
+      document.getElementById('brt').value = d.brightness;
+      document.getElementById('brt-val').textContent = d.brightness + '%';
+    }
+
+    // Settings: timezone
+    if (d.gmt_offset != null) {
+      var gmtSel = document.getElementById('gmt');
+      var val = String(d.gmt_offset);
+      for (var i = 0; i < gmtSel.options.length; i++) {
+        if (gmtSel.options[i].value === val) { gmtSel.value = val; break; }
+      }
+    }
+
+    // Settings: temp unit
+    if (d.temp_f != null) {
+      document.getElementById('btn-f').className = d.temp_f ? 'active' : '';
+      document.getElementById('btn-c').className = d.temp_f ? '' : 'active';
+    }
+
+    // Settings: location
+    if (d.lat != null) document.getElementById('lat').value = d.lat;
+    if (d.lon != null) document.getElementById('lon').value = d.lon;
+
+    // Settings: night mode
+    if (d.night_on != null) {
+      document.getElementById('night-on').checked = !!d.night_on;
+    }
+    if (d.night_start != null) {
+      document.getElementById('night-start').value = d.night_start;
+    }
+    if (d.night_end != null) {
+      document.getElementById('night-end').value = d.night_end;
+    }
+    if (d.night_brt != null) {
+      document.getElementById('night-brt').value = d.night_brt;
+      document.getElementById('night-brt-val').textContent = d.night_brt + '%';
+    }
+  });
+}
+
+// ---- WiFi scanning ----
+function showNets(d) {
+  if (!d || !d.networks || !d.networks.length) {
+    document.getElementById('nets').innerHTML = '<div style="padding:14px 0;color:var(--text3);font-size:.9em">No networks found</div>';
+    return;
+  }
+  var h = '';
+  d.networks.forEach(function(n) {
+    var s = esc(n.ssid);
+    var bars = rssiToBars(n.rssi);
+    var safeName = s.replace(/'/g, '&#39;').replace(/\\/g, '\\\\');
+    h += '<div class="net" onclick="selectNetwork(\'' + safeName + '\')" id="net-' + safeName.replace(/[^a-zA-Z0-9]/g, '_') + '">';
+    h += '<span class="net-name">' + s + (n.enc ? '<span class="lock">&#128274;</span>' : '') + '</span>';
+    h += '<span class="rssi"><span class="bars">' + bars + '</span> ' + n.rssi + ' dBm</span>';
+    h += '</div>';
+  });
+  document.getElementById('nets').innerHTML = h;
+}
+
+function selectNetwork(ssid) {
+  selectedSSID = ssid;
+
+  // Update hidden ssid field
+  document.getElementById('w-ssid').value = ssid;
+
+  // Update visual selection
+  var nets = document.querySelectorAll('.net');
+  for (var i = 0; i < nets.length; i++) nets[i].classList.remove('selected');
+  var safeId = 'net-' + ssid.replace(/'/g, '&#39;').replace(/[^a-zA-Z0-9]/g, '_');
+  var el = document.getElementById(safeId);
+  if (el) el.classList.add('selected');
+
+  // Show selected network name
+  document.getElementById('selected-net-name').textContent = ssid;
+  document.getElementById('selected-net-box').style.display = 'block';
+
+  // Hide manual entry if showing
+  document.getElementById('manual-ssid-wrap').style.display = 'none';
+  document.getElementById('manual-toggle').textContent = 'Enter SSID manually';
+
+  // Focus password field
+  document.getElementById('w-pass').focus();
+}
+
+function toggleManualSSID() {
+  var wrap = document.getElementById('manual-ssid-wrap');
+  var link = document.getElementById('manual-toggle');
+  if (wrap.style.display === 'none') {
+    wrap.style.display = 'block';
+    link.textContent = 'Hide manual entry';
+    document.getElementById('w-ssid').focus();
+    // Clear network selection
+    selectedSSID = '';
+    document.getElementById('selected-net-box').style.display = 'none';
+    var nets = document.querySelectorAll('.net');
+    for (var i = 0; i < nets.length; i++) nets[i].classList.remove('selected');
+  } else {
+    wrap.style.display = 'none';
+    link.textContent = 'Enter SSID manually';
+  }
+}
+
+function doScan() {
+  document.getElementById('nets').innerHTML = '<div style="padding:14px 0;color:var(--text2);font-size:.9em">Scanning\u2026</div>';
+  api('/api/scan?start=1').then(function() {
+    var tries = 0;
+    var poll = setInterval(function() {
+      api('/api/scan').then(function(d) {
+        if (d && !d.scanning) { clearInterval(poll); showNets(d); }
+        else if (++tries > 20) { clearInterval(poll); showNets(d); }
+      });
+    }, 500);
+  });
+}
+
+function doConnect() {
+  var s = selectedSSID || document.getElementById('w-ssid').value;
+  var p = document.getElementById('w-pass').value;
+  if (!s) { msg('Select a network or enter SSID', ''); return; }
+  msg('Connecting\u2026', true);
+  fetch(API + '/api/connect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ssid: s, password: p })
+  }).then(function(r) { return r.json(); })
+    .then(function(d) {
+      msg(d.message || 'Sent', d.success);
+      if (d.success) setTimeout(function() { location.reload(); }, 5000);
+    }).catch(function() { msg('Failed', ''); });
+}
+
+// ---- Settings ----
+function setParam(k, v) {
+  api('/api/set?' + k + '=' + v).then(function(d) {
+    if (d && d.success) msg('Saved', true);
+    else msg('Failed', '');
+  });
+}
+
+function setUnit(f) {
+  fetch(API + '/api/set?tempF=' + (f ? '1' : '0'))
+    .then(function() { load(); })
+    .catch(function() { msg('Failed', ''); });
+}
+
+function setLoc() {
+  var la = document.getElementById('lat').value;
+  var lo = document.getElementById('lon').value;
+  fetch(API + '/api/location', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lat: parseFloat(la), lon: parseFloat(lo) })
+  }).then(function(r) { return r.json(); })
+    .then(function(d) { msg(d.message || 'Saved', d.success); })
+    .catch(function() { msg('Failed', ''); });
+}
+
+// ---- System ----
+function confirmReset() {
+  if (confirm('Factory reset? All settings and WiFi credentials will be erased.')) {
+    fetch(API + '/reset', { method: 'POST' })
+      .then(function() { msg('Resetting\u2026', true); })
+      .catch(function() { msg('Failed', ''); });
+  }
+}
+
+// ---- Init ----
+load();
+</script>
+</body></html>
