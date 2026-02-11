@@ -69,10 +69,8 @@ button:disabled{background:#efede8;color:#a59d8e;cursor:default;transform:none;b
 #prog{margin-top:8px;font-size:.88em;color:#78705f;text-align:center}
 .done{color:#4a7a3a!important}
 .fail{color:#bf5f55!important}
-.reboot-wrap{text-align:center;margin-top:16px}
-.spinner{display:inline-block;width:20px;height:20px;border:2.5px solid #efede8;border-top-color:#7e9462;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #efede8;border-top-color:#4a7a3a;border-radius:50%;animation:spin 1.5s linear infinite;vertical-align:-2px;margin-left:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.reboot-msg{font-size:.88em;color:#78705f;display:inline;vertical-align:middle}
 </style>
 </head><body>
 <a class="back" href="/">&larr; Back</a>
@@ -102,7 +100,7 @@ var ubtn=document.getElementById('ubtn');
 pw.style.display='block';ubtn.disabled=true;ubtn.textContent='Uploading...';
 xhr.open('POST','/ota');
 xhr.upload.onprogress=function(e){if(e.lengthComputable){var pct=Math.round(e.loaded/e.total*100);pf.style.width=pct+'%';prog.textContent=pct+'%'}};
-xhr.onload=function(){if(xhr.status==200){pf.style.width='100%';prog.textContent='Done!';prog.className='done';ubtn.textContent='Complete';var rw=document.createElement('div');rw.className='reboot-wrap';rw.innerHTML='<span class="spinner"></span><span class="reboot-msg" id="reboot-msg">Rebooting\u2026 10s</span>';pw.parentNode.appendChild(rw);var sec=10;var ci=setInterval(function(){sec--;var rm=document.getElementById('reboot-msg');if(sec<=0){clearInterval(ci);rm.textContent='Redirecting\u2026';window.location.href='/'}else{rm.textContent='Rebooting\u2026 '+sec+'s'}},1000)}else{prog.textContent='Upload failed: '+xhr.responseText;prog.className='fail';ubtn.disabled=false;ubtn.textContent='Retry'}};
+xhr.onload=function(){if(xhr.status==200){pf.style.width='100%';prog.className='done';ubtn.textContent='Complete';var sec=10;prog.innerHTML='Rebooting\u2026 '+sec+'s <span class="spinner"></span>';var ci=setInterval(function(){sec--;if(sec<=0){clearInterval(ci);prog.innerHTML='Redirecting\u2026';window.location.href='/'}else{prog.innerHTML='Rebooting\u2026 '+sec+'s <span class="spinner"></span>'}},1000)}else{prog.textContent='Upload failed: '+xhr.responseText;prog.className='fail';ubtn.disabled=false;ubtn.textContent='Retry'}};
 xhr.onerror=function(){prog.textContent='Upload failed';prog.className='fail';ubtn.disabled=false;ubtn.textContent='Retry'};
 xhr.send(fd)})
 </script>

@@ -47,6 +47,7 @@ static void checkRollbackTimeout() {
         logPrintf("[OTA] Rollback timeout expired (%lu ms without /confirm-good)",
                   OTA_CONFIRM_TIMEOUT_MS);
         logPrintf("[OTA] Rolling back to previous firmware...");
+        setPendingFlag(false);
         delay(500);
         esp_ota_mark_app_invalid_rollback_and_reboot();
     }
